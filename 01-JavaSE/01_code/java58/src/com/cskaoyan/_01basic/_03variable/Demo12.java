@@ -1,4 +1,4 @@
-package com.cskaoyan._01basic;
+package com.cskaoyan._01basic._03variable;
 
 /**
  * 浮点数，精度有问题。

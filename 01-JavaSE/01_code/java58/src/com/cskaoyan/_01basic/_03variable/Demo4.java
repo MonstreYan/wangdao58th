@@ -1,4 +1,4 @@
-package com.cskaoyan._01basic;
+package com.cskaoyan._01basic._03variable;
 
 /**
  * 基本数据类型：Java中定义了四类八种基本数据类型。

@@ -1,4 +1,4 @@
-package com.cskaoyan._01basic;
+package com.cskaoyan._01basic._03variable;
 
 /**
  * 注意事项

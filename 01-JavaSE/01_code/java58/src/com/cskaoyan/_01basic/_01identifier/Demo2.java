@@ -1,4 +1,4 @@
-package com.cskaoyan._01basic;
+package com.cskaoyan._01basic._01identifier;
 
 /**
  * - 包名所有字母一律小写，例如com.cskaoyan.example01（多级包名用“.”隔开）
