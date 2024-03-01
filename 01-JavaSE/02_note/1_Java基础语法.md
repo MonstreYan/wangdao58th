@@ -1844,7 +1844,6 @@ if(condition1){
  语法：
 
 ```Java
-
 switch(expression){
 	case value1:
 		statement1;
@@ -2171,6 +2170,24 @@ for (int i = 0; i < 4; i++) {
 2. 打印九九乘法表
 
 
+
+在工作过程中，绝大部分场景，都是使用for循环。 
+
+```JAVA
+for (int i = 0; i < 50; i++) {
+
+}
+```
+
+有一部分场景，会使用while循环。  
+
+什么情况用for循环，什么情况用while循环、
+
+```JAVA
+已知循环次数，使用for循环。 
+
+不知道循环次数，使用while。 
+```
 
 ## 跳转控制关键字
 
