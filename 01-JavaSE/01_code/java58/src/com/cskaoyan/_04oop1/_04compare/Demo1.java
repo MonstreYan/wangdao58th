@@ -1,4 +1,4 @@
-package com.cskaoyan._04oop1._04local;
+package com.cskaoyan._04oop1._04compare;
 
 /**
  * 局部变量和成员变量的区别。
