@@ -105,3 +105,11 @@ idea2018的时候，有一个红色的，向下的图标。force step into . 强
 
 debug一定要练一下。 
 
+
+
+
+
+<span style=color:yellow;background:red>**框中的这些按钮，是重点**</span>
+
+![image-20240307102037236](img/image-20240307102037236.png)
+
