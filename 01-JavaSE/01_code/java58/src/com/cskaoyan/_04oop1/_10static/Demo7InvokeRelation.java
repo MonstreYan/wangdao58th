@@ -37,6 +37,7 @@ public class Demo7InvokeRelation {
         // Non-static method 'test2NotStaticMethod()' cannot be referenced from a static context
         // test2NotStaticMethod();
 
+        // ===================================
         // 静态能访问静态； 静态不能访问非静态
         // 静态方法，能访问静态成员变量，能访问静态成员方法
         // 静态方法，不能访问成员变量，不能访问成员方法。
