@@ -1,7 +1,5 @@
 package com.cskaoyan._05oop2;
 
-import com.cskaoyan._06oop3._03inner._02member.OuterClazz5;
-import com.cskaoyan._06oop3._03inner._02member.OuterClazz8;
 
 /**
  * final修饰成员/静态成员变量，表示一个常量，必须明确地赋值。
