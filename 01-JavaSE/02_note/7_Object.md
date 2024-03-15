@@ -18,6 +18,18 @@
 
 面试可能会问到 equals方法 和 hashCode方法。
 
+
+
+
+
+<span style=color:yellow;background:red>**关于本章，需要重点关注的方法：**</span>
+
+toString
+
+equals方法一定要知道
+
+hashCode: 默认情况下，返回的是地址相关的东西。 重写之后，和equals方法保持一致。 
+
 # API概述
 
 API，全称**Application Programming Interface**，也就是应用程序编程接口。
@@ -472,8 +484,6 @@ BigDecimal subtract(BigDecimal subtrahend)
 BigDecimal add(BigDecimal augend)
 ```
 
-
-
 ## hashCode方法
 
 ### 方法的声明
@@ -541,8 +551,6 @@ name  age   address.
 1. 一旦重写hashCode方法后，默认的toString方法就不会再打印地址值了。这是因为toString方法，默认调用的是本地方法的hashCode方法获取地址值，重写后不再是地址值了。
 2. 如果类中有引用数据类型成员变量，那么就继续调用它的hashCode方法，也就需要重写它的hashCode方法。
 
-
-
 ```JAVA
 // Arrays.hashCode() 方法。
 // name  age  address 
@@ -558,16 +566,6 @@ public static int hashCode(Object a[]) {
 
     return result;
 }
-
-// hashCode和谁有关？
-// name   zhangsan;    age   10 ;    address  hubei 
-//           5                10                15
-// result = (31) + 5
-// result = (36 * 31) + 10
-// result = (A) * 31 + 15
-// hashCode 目前，和每一个成员变量的值有关。 它希望做到一个事情，属性如果不相同，hashCode应该尽量不相同。 
-
-// 也可以思考一下，为什么要乘 31 这个数。
 ```
 
 ## finalize方法(了解)

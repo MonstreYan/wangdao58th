@@ -14,11 +14,11 @@ public class Demo1 {
             int age = 10;
 
             // 这个就是JDK16加上去。
-            static int age2 = 20;
-
-            static {
-                age2 = 30;
-            }
+            // static int age2 = 20;
+            //
+            // static {
+            //     age2 = 30;
+            // }
         }
 
         // 这个就是局部内部类。 定义在局部位置的类。
