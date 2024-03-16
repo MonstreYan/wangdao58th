@@ -27,6 +27,8 @@ public class Demo1 {
 
         // 创建出来了这样一些对象，用来表示周一-周日。 但是现在，
         WeekDay day8 = new WeekDay("周八", 8);
+        WeekDay day9 = new WeekDay("周九", 8);
+        WeekDay day10 = new WeekDay("周十", 8);
 
 
     }
