@@ -125,8 +125,6 @@ public class Demo1 {
 }
 ```
 
-
-
 # String特点(重点)
 
 ## String对象不可变
@@ -149,8 +147,10 @@ import java.util.Scanner;
  */
 public class Demo1 {
     public static void main(String[] args) {
-        
+       
         String temp = "zhangsan";
+        
+        String s = temp;
         // 改变temp内容
         temp = "lisi";
 
@@ -275,7 +275,6 @@ String s2 = "abc";
 
 ```JAVA
 case1:  
-
 String s1 = "abc";
 String s2 = new String("abc");   
 现在，创建了几个对象出来？ 
@@ -284,10 +283,6 @@ case2:
 String s1 = new String("abc");
 String s2 = "abc";
 ```
-
-
-
-
 
 ### 字符串常见问题与练习
 
@@ -343,7 +338,19 @@ StringLatin1.equals(value, aString.value);
 // JDK8的写法类似。 
 ```
 
+<span style=color:yellow;background:red>**后续，在比较引用数据类型的时候，一定要用equals方法。 可以避免很多bug。 **</span>
 
+即使是String, 有常量池的存在。  
+
+```JAVA
+String s = "hello";
+
+String s1 = new String("hello");
+
+if(s == s1){
+    
+}
+```
 
 #### 字符串拼接
 
