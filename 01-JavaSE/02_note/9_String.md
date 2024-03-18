@@ -831,6 +831,12 @@ public class Ex4 {
 
 后续在写代码的时候，应该写得代码尽量简单。 leetcode的一些做法，能把题做出来，但是1.不好懂。 2.查问题的时候，不好查。 
 
+一定要注意代码可读性问题。 
+
+代码可读性非常差，效率高一点点。
+
+代码可读性很好，效率不是特别高。 
+
 ## 其他功能
 
 ```java
@@ -1284,6 +1290,10 @@ public class Demo {
 
 如果在一些需要拼接字符串的地方，我们可以使用StringBuilder。 
 
+
+
+推荐使用StringBuilder。 
+
 ## StringBuffer构造方法
 
 ```java 
@@ -1387,11 +1397,28 @@ StringBuffer(锁)和StringBuilder从效率上来说哪个更快？
   - 在多线程的程序中，应该优先考虑使用StringBuffer，安全性要更重要
   - 它们的效率都比String高很多（涉及到拼接的时候。 ）
   
-  
+
+
 
 如果今后，只是要表示一个字符串，使用String即可， 对这个字符串没啥操作。
 
 如果今后，要对字符串进行多轮拼接，或者一些删除操作，推荐使用StringBuilder。 
 
 如果是多线程的情况，推荐使用StringBuffer。
+
+
+
+
+
+String, StringBuffer和StringBuilder有啥区别。先大后小。 
+
+String是Java中表示字符串的。 它是不可变的。 
+
+StringBuffer和StringBuilder，是一个可变的字符串。 
+
+String在一些字符串拼接的时候，效率不高； StringBuffer和StringBuilder效率高。 
+
+StringBuffer是线程安全的，StringBuilder是线程不安全的。 
+
+
 

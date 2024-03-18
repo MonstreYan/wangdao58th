@@ -46,8 +46,8 @@ public class Demo1 {
 
         // 比如，遇到一些API，你也不认识。 你看名字觉得好像可以用。但是又不知道特征
         // 点进去。 在方法上有详细的描述
-        System.out.println("s2.isBlank() = " + s2.isBlank());
-        System.out.println("s3.isBlank() = " + s3.isBlank());
+        // System.out.println("s2.isBlank() = " + s2.isBlank());
+        // System.out.println("s3.isBlank() = " + s3.isBlank());
 
     }
 
@@ -63,15 +63,48 @@ public class Demo1 {
     }
 
     @Test
-    public void test5(){
+    public void test5() {
         // 判断当前字符串对象是否包含，目标字符串的字符序列
         // boolean contains(String str)
-        //
+        String s = "China is People";
+
+        // 是否包含这个字符串。
+        boolean contains = s.contains("China");
+        System.out.println("contains = " + contains);
+
+        boolean contains1 = s.contains("people");
+
+        System.out.println("contains1 = " + contains1);
+    }
+
+    @Test
+    public void test6() {
         // 判断当前字符串对象，是否已目标字符串的字符序列开头
         // boolean startsWith(String str)
         //
         // 判断当前字符串，是否以目标字符串对象的字符序列结尾，常用于确定文件后缀名格式
         // boolean endsWith(String str)
+
+
+        String s = "景天老师爱喝茶颜悦色";
+
+        System.out.println("s.startsWith(\"景天\") = " + s.startsWith("景天"));
+        System.out.println("s.startsWith(\"老师\") = " + s.startsWith("老师"));
+
+        System.out.println("s.endsWith(\"茶颜悦色\") = " + s.endsWith("茶颜悦色"));
+    }
+
+    @Test
+    public void test7() {
+        // API比较多。 不用强行记忆。 大致记一下，里面有哪些方法。
+
+        // 相等、忽略大小写相等
+        // 是否为空、 isBlank
+        // 包含指定字符串 ，字符串开头，字符串结尾。
+
+        // 后续需要使用的时候，看名字就可以。
+        String s = "hello world";
+        // s.contains()
     }
 
 }
