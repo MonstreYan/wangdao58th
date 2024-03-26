@@ -1,0 +1,3 @@
+com.cskaoyan._15reflect.Student8
+name=zhangsanhjkjlk
+nickName=changxu
