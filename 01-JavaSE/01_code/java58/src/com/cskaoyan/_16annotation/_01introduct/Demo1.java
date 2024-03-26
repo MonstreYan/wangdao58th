@@ -1,4 +1,4 @@
-package com.cskaoyan._16annotation;
+package com.cskaoyan._16annotation._01introduct;
 
 import org.junit.Test;
 
