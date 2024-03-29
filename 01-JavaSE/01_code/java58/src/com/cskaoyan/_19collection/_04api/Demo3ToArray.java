@@ -91,4 +91,86 @@ public class Demo3ToArray {
         // 调用toArray的有参的时候，一定要注意一下类型。
         // 无参方法，和有参方法。 toArray 的。 是有参的用的多一点。
     }
+
+
+    @Test
+    public void testReadCode() {
+        // toArray的无参方法，内部是怎么实现的。
+        // ArrayList为例。
+        Collection<String> collection = new ArrayList<>();
+
+        // 接口里面没有toArray的实现。
+        // 看怎么实现的，得看实现类里面的。
+        // 编译看左边，运行看右边。 编译的时候能点出来的就是接口里面有的方法，运行的时候，实际调用的方法
+        // 就是看右边实际的类型。
+        collection.toArray();
+
+        //     public Object[] toArray() {
+        //         return Arrays.copyOf(elementData, size);
+        //     }
+        // 无参的toArray方法，就是将elementData复制了一份 。长度是size。
+
+        // 看源码的方式：
+        // 方式1： 直接进入这个类。然后 ctrl + f12；直接输入方法名
+        // 方式2： 先进入接口的声明中。（ctrl+鼠标左键点击方法）； 点旁边的符号，搜索。
+
+    }
+
+    @Test
+    public void testReadCode2() {
+        // toArray的有参构造方法，是怎么写的。
+        Collection<String> collection = new ArrayList<>();
+        collection.add("李云龙");
+        collection.add("孔捷");
+        collection.add("楚云飞");
+
+        // String[] array = new String[]{"1", "2", "3"};
+        // String[] array = new String[]{"1", "2", "3", "4", "5"};
+        String[] array = new String[]{"1", "2"};
+        String[] returnArray = collection.toArray(array);
+
+        System.out.println(array == returnArray);
+        System.out.println(Arrays.toString(array));
+        System.out.println(Arrays.toString(returnArray));
+    }
+
+    @Test
+    public void test5() {
+        // 今后是怎么使用这个toArray的有参。
+        Collection<String> collection = new ArrayList<>();
+        collection.add("李云龙");
+        collection.add("孔捷");
+        collection.add("楚云飞");
+
+
+        String[] strings = new String[collection.size()];
+        collection.toArray(strings);
+
+        //  推荐的写法。 =========================
+        String[] array = collection.toArray(new String[0]);
+        System.out.println(Arrays.toString(array));
+    }
+
+
+    @Test
+    public void test6() {
+        // toArray的作用： 遍历。
+        Collection<String> collection = new ArrayList<>();
+        collection.add("李云龙");
+        collection.add("孔捷");
+        collection.add("楚云飞");
+
+        // 对于遍历来说。 toArray。
+        // 复制。
+        // 遍历这个操作非常普遍。
+        // 每一次遍历，都copy一份，需要耗费哪些时间？
+        // 1.数组开辟需要时间。
+        // 2.copy数据需要时间
+        // 3.GC也需要时间。
+
+        // 有没有什么办法，能够简化这个遍历。
+        // 之前用数组，我们是怎么遍历的？  index
+        // 如果是链表，怎么遍历？  用一个指针。
+        // JDK里面，能不能把这个操作统一一下。 用迭代器。
+    }
 }

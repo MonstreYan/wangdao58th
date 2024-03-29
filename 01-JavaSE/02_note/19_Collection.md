@@ -502,21 +502,22 @@ public static native void arraycopy(Object src, int  srcPos, Object dest, int de
 
 
 ```JAVA
-// a是什么东西？   是我们放进来的数组
-// elementData   是ArrayList底层的数组，  size  是元素的个数
+// elementData   ArrayList底层存储数据的数组。 
+// size  存储数据的长度。
+// a是什么东西？ 我传进来的数组。 
 public <T> T[] toArray(T[] a) {
-    
-    // a.length  （传入的数组长度）   <   元素个数
-    if (a.length < size) {
-        // 如果传入的数组，长度不够。 我直接复制一下，只使用你传入的数组类型。 
+    // 传入的数组长度  <  实际的长度 ====》 装不下ArrayList里面的数据。 
+    if (a.length < size)
+        // 如果传过来的数组不够长，直接将 ArrayList底层数组复制,size，使用你传入的类型。 
         return (T[]) Arrays.copyOf(elementData, size, a.getClass());
-    }
     
-    // 将elementData的数据拷贝到  a 里面。  拷贝size长度
+    // 代码能走到这一行，说明什么。   ==》 说明肯定够装。
+    // 将elementData拷贝一份，拷贝到a。 
     System.arraycopy(elementData, 0, a, 0, size);
-   
+    
+    // 
     if (a.length > size)
-        // 把它赋值为null
+        // size    [0, size-1]. 
         a[size] = null;
     return a;
 }
@@ -560,8 +561,8 @@ public <T> T[] toArray(T[] a) {
 
 其实迭代器的思路很简单。 如果是大家来遍历数组，会怎样操作？
 
-- 复制一遍
-- 直接使用一个int来遍历。
+- 方式1：复制一遍
+- 方式2：直接使用一个int来遍历。
 
 
 
