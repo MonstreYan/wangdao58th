@@ -1,4 +1,4 @@
-package com.cskaoyan._19collection._05example;
+package com.cskaoyan._19collection._02collection._05example;
 
 import java.util.ArrayList;
 import java.util.Collection;

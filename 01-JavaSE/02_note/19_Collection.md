@@ -1153,7 +1153,7 @@ LinkedList 只要知道一个事情。 它是个双向链表。  它靠链表存
 List<String> list = new ArrayList<>();
 ```
 
-
+![img](img/v2-515aadabcf6dcf6eff4dc5aa7b427fb0_720w.webp)
 
 ## `Vector`
 

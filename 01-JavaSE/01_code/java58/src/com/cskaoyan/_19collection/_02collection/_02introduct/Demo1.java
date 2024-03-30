@@ -1,4 +1,4 @@
-package com.cskaoyan._19collection._02introduct;
+package com.cskaoyan._19collection._02collection._02introduct;
 
 import org.junit.Test;
 
