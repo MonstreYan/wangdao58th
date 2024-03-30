@@ -104,10 +104,12 @@ class ArrayList{
     }
     
     
+    // 			             elementData     index
     private void fastRemove(Object[] es, int i) {
         modCount++;
         final int newSize;
         if ((newSize = size - 1) > i)
+            // src   srcPos 
             System.arraycopy(es, i + 1, es, i, newSize - i);
         es[size = newSize] = null;
     }
