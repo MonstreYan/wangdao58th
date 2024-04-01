@@ -1194,14 +1194,6 @@ Vector为啥被替代。 效率差，因为它所有的方法都有锁。
 
 
 
-了不了解Vector?Vector和ArrayList的区别？
-
-正确的去引导面试官。先答Vector的特点。顺手再说一下ArrayList。再答最明显的特征 线程安全。
-
-要以自己的理解去答一些面试题。不要直接背出面经上的答案。
-
-
-
 **什么叫线程安全问题？**
 
 当多个线程同时对一个变量进行操作时，结果的预期与单线程下是一致的。这就是线程安全的。
@@ -1241,7 +1233,7 @@ Vector为啥被替代。 效率差，因为它所有的方法都有锁。
 
 学习目标
 
-- 掌握Queue的结构，以及Queue是什么。（操作受限的线性表）
+- 掌握Queue的结构，以及Queue是什么。（操作受限的线性表。 只能在一端进，在另一端出。）
 - 了解Queue两组增删查API及区别（add remove  element  |  offer poll peek  极端情况下表现不一致）
 - 了解Deque的结构（offerFirst offerLast  addFirst addLast .使用API成组使用）
 - 了解ArrayDeque的循环数组，是什么，以及为什么使用这种形式。
@@ -1359,6 +1351,10 @@ Stack是怎么受限的? `只能从同一端进出`
 //        boolean removeLastOccurrence(Object o)： 从列表中移除最后一次出现的指定元素
 //        Iterator<E> descendingIterator()：获取一个倒序的迭代器
 //        E element()：获取元素
+
+
+// add remove  element  在极端情况报错
+// offer poll peek 在极端情况返回特殊值。 
 ```
 
 |          | **第一个元素（头部）**                                      | **第一个元素（头部）**                                      | **最后一个元素（尾部）**                                  | **最后一个元素（尾部）**                                  |

@@ -129,6 +129,8 @@ public class Demo2Review {
         // LinkedList里面
 
         LinkedList<String> list = new LinkedList<>();
+
+        // java.util.LinkedList.ListItr
         Iterator<String> iterator1 = list.iterator();
 
     }

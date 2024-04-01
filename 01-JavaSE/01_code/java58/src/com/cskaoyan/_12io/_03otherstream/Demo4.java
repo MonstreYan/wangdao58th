@@ -69,7 +69,7 @@ public class Demo4 {
 class User4 implements Serializable {
     // @Serial
     // private static final long serialVersionUID = 5612199967298922969L;
-    @Serial
+    // @Serial
     private static final long serialVersionUID = -8656582347360103657L;
     String name;
     int age;
