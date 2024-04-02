@@ -1395,6 +1395,8 @@ ArrayDeque在JDK8和JDK17变化比较大。 看源码的时候，先按8看。 �
 
 面试过程中，ArrayDeque不怎么问。 
 
+主要是提升。 
+
 
 
 ```JAVA
@@ -1583,6 +1585,10 @@ private static int calculateSize(int numElements) {
 
 
 ![image-20230201142123219](img/image-20230201142123219.png)
+
+
+
+用API。阻塞API，只有两类API会阻塞，不是所有API都会阻塞。 
 
 # Set
 

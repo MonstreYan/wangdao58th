@@ -229,21 +229,6 @@ zhiwei  --  aa121ba244。
 
 
 
-123456  ---》   aa121ba244
-
-123457 --》 ababab01252145521
-
-彩虹表。   大写字母，小写字母，特殊符号，数字。
-
-
-
-- 彩虹表可以转换密码。 加大密码的复杂度。
-- 多hash几次。 对次数保密
-- 加盐。 salt  123456 + dhjska
-  - 123456 + dhjska   ----》   ababababababababbaba
-  - 正常登录的时候：   123456   + dhjska    ----》   ababababababababbaba
-  - 123456dhjska  + dhjska
-
 ### 好的Hash算法希望的特点
 
 
