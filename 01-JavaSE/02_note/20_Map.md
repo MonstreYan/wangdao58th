@@ -344,8 +344,6 @@ HashMap底层结构是数组+链表+红黑树。
 期望自己的  插入 删除 查找效率： O(1)
 ```
 
-
-
 ```JAVA
 // HashMap底层是数组+链表+红黑树。如果不限制，其实可以存无限的数据，但是这样效率较低
 // 在HashMap底层维护的了一个加载因子，用来表示存储到多少就会扩容
@@ -404,46 +402,39 @@ static final int hash(Object key) {
 
 
 ```JAVA
-// key是我们放入的键
+// hash函数很hashCode方法，强相关。 
+//					      key就是添加进去的数据的key
 static final int hash(Object key) {
     int h;
-    
-    // 三目运算符
-    // 1.如果key是null。直接返回0
-    // 2.不为null。 进行后续计算。 
-    // (h = key.hashCode()) ^ (h >>> 16)
-    // 计算hash值。  赋值给了h
-    // h无符号右移16位
+    // key为null，返回0
+    // key 不为null 的时候。 先算hashCode
+    // h=key.hashCode()
+    // (h >>> 16)
     return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
 }
-
-// 就是想用高位也参与hash的计算。 因为取余只用了低位。 
 ```
 
 
 
 ```JAVA
-第一个hash值
-1011 0101
-     1011
-     1110
+用一个8位的数来说明一下这个事。 
+    先回忆，添加的流程。 1）计算得到int值； 2）对数组长度进行取余
     
+   比如，现在有两个key，计算得到 值
     
-第二个hash值：
-0110 0101
-     0110
-     0011
+    0110 1010 % 0001 0000 = 1010
     
-    对于计算出来的hash值，最终.
-    假设数组长度是8.
-    第一个得到的是 0101
-    第二个得到是 0101
-    其实问题主要就是出在了，只有hash的低位参与了计算。 
+    1011 1010 % 0001 0000 = 1010
+    // 对2的幂次方进行取余。  
     
-    // 2.当b是2的幂次， a%b 相当于是取a的低位
+    0110 1010
+    0000 0110 =  1100
+    
+    1011 1010
+    0000 1011  = 0001
+    
+让高位也参与取余的过程。 
 ```
-
-
 
 hash函数，和谁有关。 和这个键的hashCode有关。 
 
@@ -467,15 +458,16 @@ hash函数，和谁有关。 和这个键的hashCode有关。
 
 
 ```JAVA
-// p是该数组，该位置的元素。
-// hash  是传入key计算得到的int值。 
-// key  value 是传入的键值对
-// p.key   ==>   p.hash   取它里面的成员变量
-// p.hash == hash   ：判断在该位置的元素的hash，是否和传入的hash相同。
-// 如果hash相同。有两种情况，只要符合一个，就认为相同
-// 1. p.key == key  地址相同（同一个对象）
-// 2. key.equals(k)。  equals方法相同，认为相同。 
-(p.hash == hash && ((k = p.key) == key || (key != null && key.equals(k))))
+// hash   key   value  
+// p是什么东西？  p是从数组上拿出来的数据。 
+// hash值相等，才会进入后面的比较逻辑。 
+// (k = p.key) == key 成立  或者 (key != null && key.equals(k)
+// 地址相等，认为相同； 
+// 如果equals方法相同，也认为相同
+if (p.hash == hash &&
+                ((k = p.key) == key || (key != null && key.equals(k))))
+    // 首先比较hash值； hash值相同，比较后面的东西
+    // 后面怎样认为相等。 要么直接 == ; 要么equals相等
 ```
 
 在Map中，作为一个key，一定需要同时重写hashCode和equals方法。 
