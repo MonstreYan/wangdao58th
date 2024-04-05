@@ -538,7 +538,7 @@ HashMap不允许存储重复的key, 当我们存储一份重复的key-value数�
 
 
 
-为什么这么写，重不重要。 
+为什么这么写，重不重要。 不重要。 怕的时候有时候面试问，可以了解一下。 
 
 
 
@@ -559,6 +559,23 @@ HashMap不允许存储重复的key, 当我们存储一份重复的key-value数�
 // 扩2倍。
 ```
 
+
+
+```JAVA
+// 扩容之后，会出现在哪些位置？
+// 位置由谁决定。  由hash值决定。  ===》 扩容前后，hash值不会变化。 
+// 假设之前是落在 x 位置。  数组长度假设最开始16； 扩容之后32
+// hash % 16 = x   ===》 hash = x + 16*n
+
+// 扩容之后，长度32. hash % 32 = (x + 16 * n) % 32 = x， x+16
+
+// 扩容之后，落在位置。 要么是原位置， 要么是原位置 + 旧数组长度
+```
+
+
+
+
+
 ### 红黑树转化为链表
 
 ```JAVA
@@ -577,7 +594,7 @@ HashMap不允许存储重复的key, 当我们存储一份重复的key-value数�
 // 重写了hashCode和equals。则两个对象的hashCode是一样的。落在了数组上的同一个位置。
 // 如果这时候通过了原对象的引用去修改了变量值。则会导致一个现象。hashCode会改变。不会落在同一个位置。则操作不会生效，比如remove。
 
-// 建议： Map里面的key, 直接用String.
+// 建议： Map里面的key, 直接用String.Integer。
 ```
 
 ### ==（重要）<span style="color:red;">HashMap的添加流程</span>==
@@ -605,11 +622,8 @@ HashMap不允许存储重复的key, 当我们存储一份重复的key-value数�
 
 
 
-
-
 ```JAVA
 // 删除方法
-    
 // 查找方法
 // 把添加流程弄懂，其他的流程很好弄懂。
 ```
@@ -678,6 +692,26 @@ class Grade{
 key是老师（Teacher）， value是学生列表。 (List<Student>)
     
     // 先遍历老师。 
+    
+    // 工作过程中，绝大部分的场景都是这样的。  
+    // List   Map   合起来处理业务数据。 
+    
+    // List<Grade>  ==> 序列化。 
+    // json   : 格式。  
+```
+
+
+
+```JAVA
+// json .
+// Map是键值对。 
+// json就是一个数据格式。 比如，现在有一个这样的对象
+
+// User4: name="zhangsan", age=20, address="hubei"
+// 字符串表示对象。 {name="zhangsan", age=20, address="hubei"}
+
+// {name="zhangsan", age=20, address="hubei", hobby = ["sing", "dance", "rap"]}
+{name="zhangsan", age=20, address="hubei", hobby = ["sing", "dance", "rap"], job={title="singer", salary=10000}}
 ```
 
 # Hashtable
@@ -783,7 +817,7 @@ LinkedHashMap(Map<? extends K,? extends V> m)
 1. TreeMap是Map接口的子实现
 2. TreeMap的数据结构红黑树。（左小右大）
 3. TreeMap存储数据大小有序。
-4. TreeMap不允许存储重复的key (什么叫重复: key的大小一样)
+4. TreeMap不允许存储重复的key (什么叫重复: key的大小一样. Comparable 返回0. )
 5. TreeMap不允许存储null作为key:   null没有办法比较大小
 
 ## TreeMap的构造方法

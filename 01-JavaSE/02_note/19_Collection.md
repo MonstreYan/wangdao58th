@@ -1680,8 +1680,6 @@ HashSet(int initialCapacity, float loadFactor)
 
 ### LinkedHashSet的特点
 
-
-
 1.  LinkedHashSet是HashSet一个子类
 2.  LinkedHashSet底层持有一个LinkedHashMap对象
     1. LinkedHashSet的特点和LinkedHashMap的key保持一致
