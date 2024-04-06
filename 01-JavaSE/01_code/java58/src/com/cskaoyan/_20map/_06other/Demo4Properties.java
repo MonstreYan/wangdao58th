@@ -1,4 +1,4 @@
-package com.cskaoyan._20map._05other;
+package com.cskaoyan._20map._06other;
 
 import org.junit.Test;
 
