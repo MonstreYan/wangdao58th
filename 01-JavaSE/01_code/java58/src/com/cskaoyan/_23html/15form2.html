@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!--想拼接这个URL。
+http://www.cskaoyan.com/login?username=admin&password=123456&msg=v50-->
+<!--http://www.cskaoyan.com/login?username=admin&password=123456&msg=v50-->
+
+<!-- 服务器内部路径  + 参数，是前端和后端一起约定好的-->
+<!-- 但是一定要建立在一个前提下。 我俩都认识。 后端能认识发来的请求，如果不认识，没办法处理-->
+
+<form action="http://www.cskaoyan.com/login">
+    用户名：<input name="username"> <br>
+    密码：<input name="password" type="password"><br>
+    消息：<textarea name="msg"></textarea><br>
+    <input type="submit">
+</form>
+
+</body>
+</html>

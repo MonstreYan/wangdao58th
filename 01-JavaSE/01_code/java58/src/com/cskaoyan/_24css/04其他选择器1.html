@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        /* 元素1  元素2  会选择元素1中的所有元素2. 这时候不管元素2是孩子，还是孙子，都会选上*/
+        div p {
+            font-size: 40px;
+            color: aqua;
+        }
+    </style>
+</head>
+<body>
+
+<!--
+//1.后代选择器
+//  元素1 元素2 {样式声明}  元素1的类型可以是标签选择器，类选择器， id选择器。
+//  选中的是 元素1中的所有元素2.
+//  元素1是父级，元素2是子级，最终选择的是元素2。
+//  元素2可以是儿子，也可以是孙子等，只要是元素1的后代即可。
+-->
+
+<div>
+    <p>
+        这是一个p in div
+    </p>
+
+    <span>
+        这是一个span in div
+        <p>
+            这是p in span in div
+        </p>
+    </span>
+</div>
+
+<p>
+    这是一个p
+</p>
+
+
+</body>
+</html>

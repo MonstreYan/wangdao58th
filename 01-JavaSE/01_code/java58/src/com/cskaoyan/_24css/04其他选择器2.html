@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        /* 后代选择器*/
+        /*div .p1 {*/
+        /*    font-size: 40px;*/
+        /*}*/
+
+        div> .p1 {
+            font-size: 40px;
+        }
+    </style>
+</head>
+<body>
+
+
+<!--//2.子选择器
+// 元素1> 元素2{}
+// 选择元素1里面的所有直接后代（子元素）元素2
+// eg1. div> p{}： 只会选择div下的直接p。如果是这种就不会选择上。
+// <div>
+// 		<span><p>content</p></span>
+// </div>
+-->
+
+<div>
+    <p class="p1">classNameP1 in div</p>
+
+    <span>
+        <p class="p1"> classNameP1 in span in div</p>
+    </span>
+
+    <p>normal P in div</p>
+</div>
+
+
+</body>
+</html>

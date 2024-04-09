@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!-- 有多种请求方式。 默认的是get，可选的是post请求。
+它们主要的区别，是请求参数的位置，以及一些安全性的区别。
+get请求，是直接将参数拼接在url之后， 不安全
+post请求，是将参数，放在请求体中，没有拼接在url上，所以比较安全。
+
+
+form标签一定要会。 可能后期会用它发请求。
+get请求和post请求，区别一定先背一下。
+-->
+
+<!--http://www.cskaoyan.com/user/login?name=admin&pwd=123456-->
+
+<form action="http://www.cskaoyan.com/user/login" method="post">
+    <input name="name"><br>
+    <input name="pwd" type="password"><br>
+    <button type="submit">提交</button>
+</form>
+
+
+</body>
+</html>

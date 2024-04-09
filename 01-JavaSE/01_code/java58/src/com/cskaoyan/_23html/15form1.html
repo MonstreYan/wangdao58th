@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!-- form标签，就是将用户输入的数据组织起来，然后生成一个url，让浏览器去请求的。-->
+
+<!-- action需要写url中四部分的前三部分。参数就是用 form标签内部的表单元素提供的。 -->
+<!-- https://www.baidu.com/s?wd=iphone17 现在，想使用form标签，完成以上url的拼装。 -->
+
+
+<!-- form标签，就是用来给用户输入，或者点击之后，。生成一个url的。 action部分，需要提交四部分中的前三部分
+最后的参数部分，需要有form标签内部包裹的表单元素进行输入。 表单元素项，一定要写name。最后拼接的时候
+
+action?name=value1&name2=value2&name3=value3
+-->
+
+<form action="https://www.baidu.com/s">
+    <!-- 在form标签里面，需要写参数部分，以及提交按钮-->
+    <!-- 所有的表单元素项，都必须要有name。 最终拼接的时候，会  name=输入的值形式来拼接-->
+    <input name="wd"><br>
+    <input type="reset">
+    <input type="submit">
+
+</form>
+
+
+</body>
+</html>

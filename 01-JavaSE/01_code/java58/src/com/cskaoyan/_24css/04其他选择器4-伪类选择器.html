@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        /* 伪类选择器，就是向一些选择器添加一些特殊的效果。 */
+        a:hover {
+            /* 鼠标浮动到a上的时候，才会被激活*/
+            color: #3a4ed3;
+        }
+
+        a {
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        div {
+            width: 200px;
+            height: 200px;
+            background-color: aquamarine;
+        }
+
+        div:hover {
+            background-color: #caedaa;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+
+<!--
+// 伪类选择器用于向某些选择器添加特殊的效果，比如给链接添加特殊效果，或选择第1个，第n个元素。
+// 1.选择标签的hover状态
+// a:hover{} 当a标签hover时候，样式
+
+// 2.选择第一个元素,选择第n个元素
+// p:first-child{} p:nth-child(2){}
+-->
+
+<a href="https://www.baidu.com">这是个a</a>
+
+<div>
+    这是一个div
+</div>
+
+</body>
+</html>
