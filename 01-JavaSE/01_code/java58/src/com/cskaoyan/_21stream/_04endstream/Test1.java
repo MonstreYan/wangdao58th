@@ -7,5 +7,13 @@ package com.cskaoyan._21stream._04endstream;
 public class Test1 {
     public static void main(String[] args) {
         System.out.println("hhhhhh");
+
+
+        System.out.println("1111");
+
+    }
+
+    public void test1() {
+
     }
 }
