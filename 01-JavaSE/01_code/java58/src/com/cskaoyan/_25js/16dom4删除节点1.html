@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+要删除的下标：<input id="input1">
+<button onclick="deleteLi()">删除</button>
+
+<ul id="ul1"><li>12345</li><li>666666</li><li>888888</li></ul>
+
+
+<script>
+
+    function deleteLi() {
+        // alert("deleteLi")
+        var inputNeedDeleteIndex = document.getElementById("input1").value;
+
+        var ulNode = document.getElementById("ul1");
+
+        var childNodes = ulNode.childNodes;
+
+        console.log(childNodes);
+
+        ulNode.removeChild(childNodes[inputNeedDeleteIndex])
+
+    }
+
+</script>
+
+</body>
+</html>

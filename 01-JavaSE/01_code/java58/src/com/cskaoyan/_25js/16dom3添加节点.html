@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="div1">
+    这是一个div
+</div>
+
+<!-- 点击按钮之后，怎么互动。 -->
+<button onclick="addZs()">按钮</button>
+
+<script>
+    function addZs() {
+        // alert("addZs-----")
+
+        /* appendChild的是谁想添加子元素。就用谁点*/
+        var divNode = document.getElementById("div1");
+
+        // 如果要添加文本上去。
+        var textNode = document.createTextNode("zs");
+
+        divNode.appendChild(textNode);
+
+    }
+</script>
+
+
+</body>
+</html>

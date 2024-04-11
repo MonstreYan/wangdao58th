@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!-- 看不清，换一张，怎么换的？-->
+
+<img src="img/verycode.gif" id="img1">
+<span onclick="changImg()">看不清，换一张</span>
+
+
+<script>
+
+    var imgList = ["img/1111.png", "img/1234.png", "img/2222.png", "img/3333.png", "img/4567.png"];
+    var lastIndex = -1;
+
+    function changImg() {
+        var imgNode = document.getElementById("img1");
+        var randomIndex;
+        while (true) {
+            randomIndex = Math.floor(Math.random() * imgList.length);
+
+            if (lastIndex != randomIndex) {
+                break;
+            }
+        }
+
+        imgNode.src = imgList[randomIndex];
+        lastIndex = randomIndex;
+    }
+</script>
+
+</body>
+</html>
