@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<script>
+    // toString() 以字符串返回数值
+    var ii = 123
+    console.log(typeof ii);  // Number
+    console.log(typeof ii.toString()) // String
+
+    // toFixed() 返回字符串值，它包含了指定位数小数的数字(四舍五入)：
+    var x = 9.6544;
+    // 返回 9.65
+    console.log(x.toFixed(2)) // 保留两位小数。
+
+    // toPrecision() 返回字符串值，它包含了指定长度的数字(四舍五入)：
+    var x = 9.656;
+    // 返回 9.7
+    console.log(x.toPrecision(2));
+
+    var x1 = 1234.111;
+    console.log(x1.toPrecision(3));
+    // 科学计数法。 1.23e+3
+
+    // parseInt() 允许最前面的空格。只返回首个数字：
+    // 返回 10
+    console.log(parseInt("        10"));// 允许最前面的空格.会把空格丢掉。
+
+    console.log(parseInt("1023abc")); // 1023
+    console.log(parseInt("a1023abc"));  // NaN
+
+    // parseFloat()  允许空格。只返回首个数字：
+    parseFloat("10.33"); // 返回 10.33
+    console.log(parseFloat("    10.33aaaaa"))
+    console.log(parseFloat("    a10.33aaaaa"))
+
+
+</script>
+
+</body>
+</html>
