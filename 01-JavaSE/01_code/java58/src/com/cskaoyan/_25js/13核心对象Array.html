@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+    // toString() 返回数组转换的数组值（逗号分隔）的字符串。
+    var fruits = ["Banana", "Orange", "Apple", "Mango"];
+    console.log(fruits.toString()); //Banana,Orange,Apple,Mango
+
+    // pop() 方法从数组中删除最后一个元素,返回删除的元素
+    var x = fruits.pop();      // x 的值是 "Mango"
+    console.log(x);
+    console.log(fruits.toString());
+
+    // push() 方法（在数组结尾处）向数组添加一个新的元素,返回数组长度
+    fruits.push("Kiwi");       //  向 fruits 添加一个新元素
+
+    console.log(fruits.toString());
+
+    // sort() 方法以字母顺序对数组进行排序,返回值和原数组是经过排序的数组
+    fruits.sort();            // 对 fruits 中的元素进行排序
+
+    console.log(fruits.toString());
+
+    // reverse() 方法反转数组中的元素。返回值和原数组都变为经过反转数组
+    fruits.reverse();            // 对 fruits 中的元素进行排序
+    console.log(fruits.toString());
+
+    console.log("=============================")
+
+
+    // splice()
+    // - 删除指定位置开始的指定个元素。fruits.splice(2, 2);
+    // - 方法可用于向数组添加新项, 返回([])。fruits.splice(2, 0, "Lemon", "Kiwi");
+    var teaList = ["茶百道", "书亦烧仙草", "蜜雪冰城", "茶颜悦色"];
+    console.log(teaList.toString())
+    // teaList.splice(1, 2);
+    teaList.splice(1, 2, "香飘飘", "快乐水", "七分甜");
+    console.log(teaList.toString())
+    // 前面的参数，代表删除。 还可以添加数据进去。 直接往后面写数据。
+
+    // addAll()
+
+</script>
+
+
+</body>
+</html>

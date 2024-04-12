@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!-- 看不清，换一张，怎么换的？-->
+
+<img src="img/verycode.gif" id="img1">
+<span onclick="changImg()">看不清，换一张</span><br>
+验证码：<input id="input1"><br>
+<img src="img/btn_reg.gif" onclick="checkVerifyCode()">
+
+
+<script>
+
+    // 服务器内部路径。
+    // 验证码的图片地址。 正确答案。
+    var imgList = ["img/1111.png", "img/1234.png", "img/2222.png", "img/3333.png", "img/4567.png"];
+    var rightCodeList = ["1111", "1234", "2222", "3333", "4567"];
+    var lastIndex = -1;
+
+    function changImg() {
+        var imgNode = document.getElementById("img1");
+        var randomIndex;
+        while (true) {
+            randomIndex = Math.floor(Math.random() * imgList.length);
+
+            if (lastIndex != randomIndex) {
+                break;
+            }
+        }
+
+        imgNode.src = imgList[randomIndex];
+        lastIndex = randomIndex;
+    }
+
+    function checkVerifyCode() {
+        var inputVerifyCode = document.getElementById("input1").value;
+
+        if (lastIndex == -1) {
+            if ("bnksu" === inputVerifyCode) {
+                alert("验证码输入正确");
+            } else {
+                alert("验证码输入错误");
+            }
+            return;
+        }
+
+        var rightCode = rightCodeList[lastIndex];
+
+        if (rightCode == inputVerifyCode) {
+            alert("验证码输入正确")
+        } else {
+            alert("验证码输入错误")
+        }
+
+    }
+</script>
+
+</body>
+</html>

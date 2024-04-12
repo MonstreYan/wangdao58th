@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="div1">
+    这是div
+</div>
+
+<div name="divname1">
+    这是divname1
+</div>
+<div name="divname1">
+    这是divname2
+</div>
+
+<p>这是p</p>
+
+
+<script>
+    /* 在一份html代码被浏览器拿到之后，它负责解析节点。 解析完节点之后，会将该页面的所有数据，放置到一个全局变量里面。document*/
+    /* getElementById拿回来的东西，是一个元素。 因为整个页面的id不允许重复。  */
+    var htmlElement = document.getElementById("div1");
+    console.log(htmlElement);
+
+    // getElementsByName():  根据name属性, 获取所有对应name结点的集合
+    let elementsByName = document.getElementsByName("divname1");
+    console.log(elementsByName)
+
+    // getElementsByTagName():  根据标签名, 获取所有对应标签结点的集合
+    let elementsByTagName = document.getElementsByTagName("div");
+    console.log(elementsByTagName);
+
+    let elementsByTagName1 = document.getElementsByTagName("p");
+    console.log(elementsByTagName1);
+</script>
+
+</body>
+</html>

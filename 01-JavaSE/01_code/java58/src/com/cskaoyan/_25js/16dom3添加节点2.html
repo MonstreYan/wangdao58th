@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<input id="input1">
+<button onclick="addLi()">添加</button>
+
+<ul>
+    <li>sing</li>
+    <li>dance</li>
+    <li>rap</li>
+</ul>
+
+<script>
+    function addLi() {
+        // 获取一个输入框的值。 就是获取这个节点， 然后再获取里面value
+        // 想对一个输入框的值进行改变，这时候只需要改 value值就行。
+        var inputNode = document.getElementById("input1");
+        console.log(inputNode.value);
+
+        inputNode.value = "6666";
+
+    }
+</script>
+
+</body>
+</html>

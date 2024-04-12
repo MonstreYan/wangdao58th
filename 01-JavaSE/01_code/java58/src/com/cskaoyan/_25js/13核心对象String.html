@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<script>
+    // length 属性返回字符串的长度
+    var txt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var sln = txt.length;
+    console.log(sln)
+
+    // indexOf()方法返回字符串中指定文本首次出现的索引（位置）：
+    var str = "The full name of China is the People's Republic of China.";
+    var pos = str.indexOf("China");
+
+    console.log(pos);
+    var pos = str.indexOf("China", 28);
+    console.log(pos);
+    // indexOf() 不存在返回 -1。
+
+    // slice() 提取字符串的某个部分,并以新字符串中返回被提取的部分。
+    var str = "Apple, Banana, Mango";
+    var res = str.slice(7, 13);//裁剪字符串中位置 7 到位置 13 的片段。包左不包右
+    console.log(res)
+
+    // List subList Map里面 keySet  entrySet
+    // 视图的操作，影响原来的数据。
+    console.log("======================")
+
+    // split() 将字符串转换为数组
+    var txt = "a,b,c,d,e";   // 字符串
+    // 用逗号分隔
+    console.log(txt.split(","))
+
+    // 用空格分隔
+    console.log(txt.split(" "))
+    txt.split("|");          // 用竖线分隔
+    // 如果分隔符是 ""，被返回的数组将是间隔单个字符的数组：
+    console.log(txt.split(""))
+
+    // sourcetree
+    // 钓鱼。
+    // navicat
+    // 一定要先用会命令行。
+
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<script>
+    /* 和Java 的区别，主要在减法这。 */
+    var a = "10";
+    var b = 5;
+    console.log(a + b);
+
+    //在Java中，这样写会报错。  “abc” - 5
+
+    // 在js中，如果一个字符串，参与减法，首先会尝试将这个字符串，转换为数字。 如果转换成功，就按照转换后的数字来算。
+    // “10” - 5 = 10 - 5 = 5
+    console.log(a - b);
+
+    var a2 = "abc";
+    // "abc" - 2 = NaN(Not a number) - 2 = NaN
+    console.log(a2 - 2);
+
+
+</script>
+</body>
+</html>

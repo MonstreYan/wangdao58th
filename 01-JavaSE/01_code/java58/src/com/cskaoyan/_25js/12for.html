@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+    // 一般我们使用普通的fori循环用来遍历数组,  一般我们使用foreach循环遍历对象
+    /* 在Java中，fori一般用来干什么的？*/
+    var list = ["zs", "ls", "wu"];
+
+    // for (var string of list) {
+    //     console.log(string)
+    // }
+    // for (var string in list) {
+    //     // console.log(string);
+    //     console.log(list[string])
+    // }
+
+    // bug是怎么产生的？
+    for (var i = 0; i < list.length; i++) {
+        console.log(list[i])
+    }
+
+
+    console.log("==========================")
+
+    var nameAndAgeObject = {"zs": 18, "ls": 20, "jintian": 18};
+
+    for (var nameAndAgeObjectKey in nameAndAgeObject) {
+        // nameAndAgeObject[nameAndAgeObjectKey] 拿对应的key的value。
+        console.log(nameAndAgeObjectKey + "___" + nameAndAgeObject[nameAndAgeObjectKey]);
+    }
+
+
+</script>
+
+</body>
+</html>

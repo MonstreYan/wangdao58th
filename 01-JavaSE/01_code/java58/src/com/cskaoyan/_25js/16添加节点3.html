@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<input id="input1">
+<button onclick="addLi()">添加</button>
+
+<ul id="ul1">
+    <li>sing</li>
+    <li>dance</li>
+    <li>rap</li>
+</ul>
+
+<script>
+    function addLi() {
+        // alert("addLi")
+
+        // document.createTextNode();
+        // document.createElement("li")
+        // document.createElement("div")
+        var inputNode = document.getElementById("input1");
+
+        var liNode = document.createElement("li");
+        liNode.appendChild(document.createTextNode(inputNode.value))
+
+        var ulNode = document.getElementById("ul1");
+        ulNode.appendChild(liNode);
+
+        inputNode.value = "";
+
+
+    }
+</script>
+
+
+</body>
+</html>

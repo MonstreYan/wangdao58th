@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<div id="div1">
+    这是一个div
+</div>
+<button onclick="replaceDiv()">替换</button>
+
+<script>
+    function replaceDiv() {
+        var divNode = document.getElementById("div1");
+
+        // innerText把所有添加进去的东西，都当做文本看待； innerHTML把添加进去的东西，当做html看待，如果里面有html标签，则按标签解析
+        // divNode.innerText = "6666666"
+        // divNode.innerHTML = "6666666"
+
+        // divNode.innerText = "<b>cskaoyan</b>";
+        divNode.innerHTML = "<b>cskaoyan</b>";
+    }
+</script>
+
+</body>
+</html>

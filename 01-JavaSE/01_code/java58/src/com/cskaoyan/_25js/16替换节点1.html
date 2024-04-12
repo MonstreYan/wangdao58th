@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<!-- replaceChild
+需要两个参数，第一个参数是新孩子。第二个参数是旧孩子。
+-->
+需要替换的下标：<input id="inputIndex">
+需要替换的内容：<input id="inputContent">
+<button onclick="replaceLiNode()">替换</button>
+<ul id="ul1"><li>li1</li><li>li2</li><li>li3</li></ul>
+
+
+<script>
+    function replaceLiNode() {
+        // alert("replaceChild")
+        var inputIndex = document.getElementById("inputIndex").value;
+        var inputContent = document.getElementById("inputContent").value;
+
+        var ulNode = document.getElementById("ul1");
+
+        var textNode = document.createTextNode(inputContent);
+        var liNode = document.createElement("li");
+        liNode.appendChild(textNode);
+
+        var oldChild = ulNode.childNodes[inputIndex];
+
+        ulNode.replaceChild(liNode, oldChild);
+
+    }
+</script>
+
+</body>
+</html>

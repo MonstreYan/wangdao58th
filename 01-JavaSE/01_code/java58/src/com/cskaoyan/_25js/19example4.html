@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<!-- 从公元前2000年到现在2024年。 -->
+
+生日：<select id="selectYear" onchange="calculateDay()">
+    <option>2023</option>
+    <option>2022</option>
+</select>年
+<select id="selectMonth" onchange="calculateDay()">
+    <option>01</option>
+    <option>02</option>
+    <option>03</option>
+    <option>04</option>
+    <option>05</option>
+    <option>06</option>
+    <option>07</option>
+    <option>08</option>
+    <option>09</option>
+    <option>10</option>
+    <option>11</option>
+    <option>12</option>
+</select>月
+<select id="selectDay">
+    <option>01</option>
+    <option>02</option>
+    <option>03</option>
+</select>日
+
+<!--<input type="date">-->
+
+
+<script>
+
+
+    function isLeapYear(year) {
+        if (year % 4 === 0 && year % 100 !== 0) {
+            return true; // 能被4整除且不能被100整除的年份为闰年
+        } else if (year % 400 === 0) {
+            return true; // 能被400整除的年份也是闰年
+        } else {
+            return false; // 其它年份为平年
+        }
+    }
+
+    function calculateDay() {
+        // alert("calculateDay");
+
+        var inputYear = document.getElementById("selectYear").value;
+        var inputMonth = document.getElementById("selectMonth").value;
+
+        // 1 3 5 7 8 10 12  ===> 31天
+        if (inputMonth == "01" || inputMonth == "03" || inputMonth == "05" || inputMonth == "07" ||
+            inputMonth == "08" || inputMonth == "10" || inputMonth == "12") {
+            // 31天
+            initDay(31);
+        } else if (inputMonth == "04" || inputMonth == "06" || inputMonth == "09" || inputMonth
+            == "11") {
+            // 30天
+            initDay(30);
+        } else {
+            // 二月份。
+            // 平年、 闰年。
+            if (isLeapYear(inputYear)) {
+                // 闰年。 29天
+                initDay(29);
+            } else {
+                // 平年 28天
+                initDay(28);
+            }
+
+        }
+
+        // 4 6 9 11 ==》 30天
+        // 2月份另算。
+
+    }
+
+    function initY() {
+        var selectNode = document.getElementById("selectYear");
+        selectNode.innerText = "";
+
+        for (let i = 2024; i >= 1000; i--) {
+            var optionElement = document.createElement("option");
+            optionElement.appendChild(document.createTextNode(i));
+
+            selectNode.appendChild(optionElement);
+        }
+    }
+
+    function initDay(day) {
+        var selectNode = document.getElementById("selectDay");
+        selectNode.innerText = "";
+
+        // selectDay
+        for (let i = 1; i <= day; i++) {
+
+            var strDay = i;
+
+            if (i < 10) {
+                strDay = "0" + i;
+            }
+
+            var optionElement = document.createElement("option");
+            optionElement.appendChild(document.createTextNode(strDay));
+
+            selectNode.appendChild(optionElement);
+
+        }
+
+
+    }
+
+    initY();
+    initDay(31);
+</script>
+
+</body>
+</html>
