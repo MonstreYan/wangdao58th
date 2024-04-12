@@ -293,7 +293,7 @@ username=admin&password=admin123&gender=female&course=java&course=python&course=
 
 - Accept:浏览器可接受的    MIME类型 */*   (大类型)/(小类型)。
 
-​	浏览器可以接受的类型，如果服务器需要返回资源类型，那么应当返回我可以接受的资源类型。
+​	浏览器可以接受的类型，如果服务器需要返回资源类型，那么应当返回客户端可以接受的资源类型。
 
 ​	MIME：就是用一种大类型/小类型的方式将互联网上面的资源进行分类，比如文本 text/html、text/txt；音频	audio/mp3、视频video/mp4
 
@@ -341,15 +341,94 @@ username=admin&password=admin123&gender=female&course=java&course=python&course=
   > Accept-Language: zh-CN,zh;q=0.9
   > Cookie: cZBD_2132_saltkey=tDd7Dw6d; cZBD_2132_lastvisit=1712887470; Hm_lvt_5f3c4e32676aacc710ede84276010d9b=1712891146; cZBD_2132_sid=JiGG5C; cZBD_2132_st_t=0%7C1712894068%7C74bd3a3ce256f402ee29af0e615f6115; cZBD_2132_forum_lastvisit=D_279_1712891734D_280_1712894068; cZBD_2132_sendmail=1; Hm_lpvt_5f3c4e32676aacc710ede84276010d9b=1712894069; cZBD_2132_lastact=1712894098%09forum.php%09ajax
 
-- Content-Type:内容类型
+- Content-Type:内容类型。如果是GET请求，则不会有该请求头。
 
 - If-Modified-Since: Wed, 02 Feb 2011 12:04:56 GMT 服务器利用这个头与服务器的文件进行比对，如果一致，则告诉浏览器从缓存中直接读取文件。
 
 - User-Agent:浏览器类型.
 
-- Content-Length:表示请求消息正文的长度 
+- Content-Length:表示请求消息正文的长度 。GET请求时，不会有这个头。
 
 - Connection:表示是否需要持久连接。如果服务器看到这里的值为“Keep -Alive”，或者看到请求使用的是HTTP 1.1（HTTP 1.1默认进行持久连接 
-  Cookie:这是最重要的请求头信息之一 
-  Date: Mon, 22 Aug 2011 01:55:39 GMT请求时间GMT
+
+- Cookie:这是最重要的请求头信息之一 
+
+- Date: Mon, 22 Aug 2011 01:55:39 GMT请求时间GMT
+
+
+
+#### 请求体
+
+这里面一般用来去存放大量的数据，可以是文本数据，也就是字符数据，也可以是二进制数据。
+
+比如form表单提交了字符信息；微信更换头像，提交的是二进制文件信息。
+
+
+
+### HTTP响应详解
+
+#### 响应行
+
+响应行又进一步分为：版本协议、状态码、原因短语
+
+状态码：
+
+200   ok  一切正常
+
+301、302、307 重定向(一定需要搭配着一个Location响应头才可以使用)
+
+> http://www.bing.com---------->  https://www.bing.com----------> https://cn.bing.com
+>
+> 
+
+304 未修改 使用的是缓存
+
+404 未找到 当前位置该文件不存在
+
+500 服务器异常(服务器代码发生了故障)
+
+#### 响应头
+
+- Location: http://www.cskaoyan.com/指示新的资源的位置。需要搭配着重定向状态码一起使用。 
+- Server: apache tomcat 指示服务器的类型。
+- Content-Encoding: gzip 服务器发送的数据采用的编码类型。和之前学习的Accept-Encoding是对应的
+- Content-Length: 80 告诉浏览器正文的长度
+- Content-Language: zh-cn服务发送的文本的语言
+- Content-Type: text/html;  服务器发送的内容的MIME类型
+- Last-Modified: Tue, 11 Jul 2000 18:23:51 GMT文件的最后修改时间
+- Refresh: 1;url=http://www.cskaoyan.com指示客户端刷新频率。单位是秒
+- Content-Disposition: attachment; filename=aaa.zip指示客户端保存文件
+- Set-Cookie: SS=Q0=5Lb_nQ; path=/search服务器端发送的Cookie
+- Expires: 0
+- Cache-Control: no-cache (1.1)  
+- Connection: close/Keep-Alive  
+- Date: Tue, 11 Jul 2000 18:23:51 GMT
+
+#### 响应体
+
+服务器返回给客户端的大量的数据信息会放置在响应体中。响应体里面的内容，一般情况下，在没有特殊设置的情况下，会出现在浏览器的主窗口界面中。
+
+
+
+## HTTPS
+
+可以理解为是http协议的升级版本，加密版本。
+
+http协议有什么问题？
+
+1.全文没有加密，可以直接抓包获取到内容
+
+2.没有验证通讯另一方的身份，可能被挟持
+
+3.没有完整性校验，篡改部分数据之后，依然无法发现
+
+
+
+https主要就是解决了上述三个问题：
+
+1.https采用了加密。采取的是混合加密。
+
+> 加密：对称加密（加密解密使用的是同一把秘钥 字符串；不够安全，速度块）、非对称加密（加密和解密使用的是不同的秘钥：公钥加密 私钥解；私钥加密 公钥解；公钥加密 公钥无法解；私钥加密 私钥无法解；安全，速度慢）
+
+2.采取了证书的形式。证书一般是由第三方的权威机构所颁发的。
 
