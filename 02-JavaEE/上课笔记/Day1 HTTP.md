@@ -367,7 +367,7 @@ username=admin&password=admin123&gender=female&course=java&course=python&course=
 
 ### HTTP响应详解
 
-#### 响应行
+#### 响应行(掌握)
 
 响应行又进一步分为：版本协议、状态码、原因短语
 
@@ -404,13 +404,13 @@ username=admin&password=admin123&gender=female&course=java&course=python&course=
 - Connection: close/Keep-Alive  
 - Date: Tue, 11 Jul 2000 18:23:51 GMT
 
-#### 响应体
+#### 响应体(掌握)
 
 服务器返回给客户端的大量的数据信息会放置在响应体中。响应体里面的内容，一般情况下，在没有特殊设置的情况下，会出现在浏览器的主窗口界面中。
 
 
 
-## HTTPS
+## HTTPS(了解)
 
 可以理解为是http协议的升级版本，加密版本。
 
@@ -431,4 +431,6 @@ https主要就是解决了上述三个问题：
 > 加密：对称加密（加密解密使用的是同一把秘钥 字符串；不够安全，速度块）、非对称加密（加密和解密使用的是不同的秘钥：公钥加密 私钥解；私钥加密 公钥解；公钥加密 公钥无法解；私钥加密 私钥无法解；安全，速度慢）
 
 2.采取了证书的形式。证书一般是由第三方的权威机构所颁发的。
+
+3.https引入了完整性校验
 
