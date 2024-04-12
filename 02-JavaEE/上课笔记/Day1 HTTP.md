@@ -140,11 +140,216 @@ Socket四要素：客户端ip地址、客户端端口号、服务器ip地址、�
 
 建立TCP连接的过程中，需要经历三次握手。为什么是三次呢？
 
+至少要保障三次。
+
+
+
+#### 发送HTTP请求
+
+建立TCP连接之后，**浏览器(客户端)**会发送HTTP请求信息，经过传输层、网络层、链路层等从计算机出去，在网络中进行中转传输，到达目标机器主机，被监听指定端口号的程序接收到，进行解析处理
+
+
+
+#### 返回HTTP响应
+
+**服务器**会根据客户端请求的资源或者意图，返回对应的数据内容.同样也是需要再网络中进行中转传输,返回给客户端.
+
+
+
+#### 客户端进行渲染解析
+
+如果服务器返回的是一个html页面,浏览器便会对html页面里面的标签进行解析,如果遇到了img标签.则浏览器会再次去发送HTTP请求,直至获取到所有的资源文件之后呢,将页面进行渲染呈现出来.
 
 
 
 
 
+### HTTP请求详解
+
+客户端发送的HTTP请求信息,一般情况下,我们也称之为HTTP请求报文.
+
+HTTP请求报文具有以下格式:
+
+请求行
+
+请求头
+
+空行
+
+请求体
+
+#### 请求行(掌握)
+
+分为三部分组成:请求方法、请求资源、版本协议
+
+##### 请求方法
+
+指的是当前的HTTP请求所使用的方法类型。常见的有GET或者POST.
+
+GET和POST究竟有什么区别呢？
+
+**最根本的区别在于语义上面的差异。GET的语义表示查询、POST表示提交。**
+
+查看某个商品：GET
+
+注册、登录：POST
+
+GET:
+
+GET http://www.cskaoyan.com/ HTTP/1.1
+Host: www.cskaoyan.com
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9
+Cookie: cZBD_2132_saltkey=tDd7Dw6d; cZBD_2132_lastvisit=1712887470; Hm_lvt_5f3c4e32676aacc710ede84276010d9b=1712891146; cZBD_2132_sid=JiGG5C; cZBD_2132_st_t=0%7C1712891734%7C8e212f9f3bb1e15720e15532a8ddf35b; cZBD_2132_forum_lastvisit=D_280_1712891726D_279_1712891734; cZBD_2132_lastact=1712892506%09home.php%09misc; cZBD_2132_sendmail=1; Hm_lpvt_5f3c4e32676aacc710ede84276010d9b=1712892507
+
+POST:
+
+POST http://www.cskaoyan.com/ HTTP/1.1
+Host: www.cskaoyan.com
+Connection: keep-alive
+Content-Length: 87
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+Origin: http://localhost:63342
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer: http://localhost:63342/
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9
+Cookie: cZBD_2132_lastact=1712892505%09forum.php%09ajax
+
+username=admin&password=admin123&gender=female&course=java&course=python&course=c%2B%2B
+
+> 1.什么情况下会发送GET请求、什么情况下会发送POST请求？
+>
+> 正常情况下俩说，如果希望发送POST请求，则需要大家去通过form表单去发送，因为通过浏览器直接访问的话，99%情况下都是GET请求。
+>
+> 2.表单回顾
+>
+> form标签，具备method=get/post；action地址表单提交的地址
+>
+> form表单里面可以进一步去编写input标签
+>
+> 3.发送GET请求时，不会有请求体
+
+##### 请求资源
+
+指的是访问服务器上面的哪个资源。访问两个不同的页面，区别主要在于请求行的第二部分。服务器需要获取这部分数据，确定客户端需要访问哪个页面资源。
+
+> 为了能够让大家很直观地看到这部分内容，我们需要给大家介绍抓包。抓取网络传输过程中的数据。fiddler
+>
+> http://www.cskaoyan.com/forum-280-1.html
+>
+> http://www.cskaoyan.com/forum-279-1.html
+>
+> 上述是两个不同的页面，通过抓包，查看彼此之间的差异
+>
+> GET http://www.cskaoyan.com/forum-280-1.html HTTP/1.1
+> Host: www.cskaoyan.com
+> Connection: keep-alive
+> Upgrade-Insecure-Requests: 1
+> User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
+> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+> Referer: http://www.cskaoyan.com/forum.php
+> Accept-Encoding: gzip, deflate
+> Accept-Language: zh-CN,zh;q=0.9
+> Cookie: cZBD_2132_saltkey=tDd7Dw6d; cZBD_2132_lastvisit=1712887470; cZBD_2132_sid=wf6ssp; cZBD_2132_lastact=1712891089%09home.php%09misc; Hm_lvt_5f3c4e32676aacc710ede84276010d9b=1712891146; Hm_lpvt_5f3c4e32676aacc710ede84276010d9b=1712891146
+>
+> ===================================================================================================================================================================================================================================================
+>
+> GET http://www.cskaoyan.com/forum-279-1.html HTTP/1.1
+> Host: www.cskaoyan.com
+> Connection: keep-alive
+> Upgrade-Insecure-Requests: 1
+> User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
+> Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+> Referer: http://www.cskaoyan.com/forum.php
+> Accept-Encoding: gzip, deflate
+> Accept-Language: zh-CN,zh;q=0.9
+> Cookie: cZBD_2132_saltkey=tDd7Dw6d; cZBD_2132_lastvisit=1712887470; Hm_lvt_5f3c4e32676aacc710ede84276010d9b=1712891146; cZBD_2132_sid=JiGG5C; cZBD_2132_st_t=0%7C1712891726%7Ccaa4e20078695f8c1c2c022be7e68778; cZBD_2132_forum_lastvisit=D_280_1712891726; cZBD_2132_lastact=1712891726%09home.php%09misc; cZBD_2132_sendmail=1; Hm_lpvt_5f3c4e32676aacc710ede84276010d9b=1712891734
 
 
+
+##### 版本协议
+
+就是前面看到的HTTP/1.1部分的内容。指的是HTTP协议的版本信息。
+
+目前的版本是1.1版本，前一版本是1.0版本。二者的最大差异是是否支持长连接。
+
+何为长连接呢？是否可以在一个TCP连接内去发送多个HTTP请求。
+
+目前在实验室阶段的还有2.0和3.0版本，倾向于设计成二进制协议的。
+
+
+
+#### 请求头(了解)
+
+请求头可以理解为是对于请求行的一个额外补充。请求行其实说的是使用何种请求方法向哪个地址去发送请求，请求头可以理解为是对于上述信息的一个进一步补充说明。比如约定可以接受的数据类型、是否需要压缩等等。
+
+- Accept:浏览器可接受的    MIME类型 */*   (大类型)/(小类型)。
+
+​	浏览器可以接受的类型，如果服务器需要返回资源类型，那么应当返回我可以接受的资源类型。
+
+​	MIME：就是用一种大类型/小类型的方式将互联网上面的资源进行分类，比如文本 text/html、text/txt；音频	audio/mp3、视频video/mp4
+
+- Accept-Charset: 浏览器通过这个头告诉服务器，它支持哪种字符集
+
+- Accept-Encoding:浏览器能够进行解码的数据编码方式，比如gzip 。如果服务器你返回给我的内容需要进行压缩，那么选择gzip或者deflate
+
+- Accept-Language: 浏览器所希望的语言种类，当服务器能够提供一种以上的语言版本时要用到,
+  可以在浏览器中进行设置。访问https://twitter.com/
+
+- Host:初始URL中的主机和端口 。表示的是当前请求访问的主机、端口号
+
+- Referer:包含一个URL，用户从该URL代表的页面出发访问当前请求的页面 （防盗链）
+
+  ​    用户直接访问A页面和先访问B页面，通过B页面再次访问A页面，能否知晓是使用的哪种方式？
+
+  ​    可行的。就是借助于referer请求头。
+
+  ​	如果直接访问B页面，那么不会有该请求头；如果访问了A页面，再次访问B页面，那么会有一个referer请求头
+
+  ​	有什么用呢？引流。
+
+  > 通过页面跳转：
+  >
+  > GET http://www.cskaoyan.com/forum-280-1.html HTTP/1.1
+  > Host: www.cskaoyan.com
+  > Connection: keep-alive
+  > Upgrade-Insecure-Requests: 1
+  > User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
+  > Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+  > Referer: http://www.cskaoyan.com/forum.php
+  > Accept-Encoding: gzip, deflate
+  > Accept-Language: zh-CN,zh;q=0.9
+  > Cookie: cZBD_2132_saltkey=tDd7Dw6d; cZBD_2132_lastvisit=1712887470; Hm_lvt_5f3c4e32676aacc710ede84276010d9b=1712891146; cZBD_2132_sid=JiGG5C; cZBD_2132_st_t=0%7C1712891734%7C8e212f9f3bb1e15720e15532a8ddf35b; cZBD_2132_forum_lastvisit=D_280_1712891726D_279_1712891734; Hm_lpvt_5f3c4e32676aacc710ede84276010d9b=1712892564; cZBD_2132_lastact=1712894028%09forum.php%09ajax
+  >
+  > 直接访问：
+  >
+  > GET http://www.cskaoyan.com/forum-280-1.html HTTP/1.1
+  > Host: www.cskaoyan.com
+  > Connection: keep-alive
+  > Upgrade-Insecure-Requests: 1
+  > User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36
+  > Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+  > Accept-Encoding: gzip, deflate
+  > Accept-Language: zh-CN,zh;q=0.9
+  > Cookie: cZBD_2132_saltkey=tDd7Dw6d; cZBD_2132_lastvisit=1712887470; Hm_lvt_5f3c4e32676aacc710ede84276010d9b=1712891146; cZBD_2132_sid=JiGG5C; cZBD_2132_st_t=0%7C1712894068%7C74bd3a3ce256f402ee29af0e615f6115; cZBD_2132_forum_lastvisit=D_279_1712891734D_280_1712894068; cZBD_2132_sendmail=1; Hm_lpvt_5f3c4e32676aacc710ede84276010d9b=1712894069; cZBD_2132_lastact=1712894098%09forum.php%09ajax
+
+- Content-Type:内容类型
+
+- If-Modified-Since: Wed, 02 Feb 2011 12:04:56 GMT 服务器利用这个头与服务器的文件进行比对，如果一致，则告诉浏览器从缓存中直接读取文件。
+
+- User-Agent:浏览器类型.
+
+- Content-Length:表示请求消息正文的长度 
+
+- Connection:表示是否需要持久连接。如果服务器看到这里的值为“Keep -Alive”，或者看到请求使用的是HTTP 1.1（HTTP 1.1默认进行持久连接 
+  Cookie:这是最重要的请求头信息之一 
+  Date: Mon, 22 Aug 2011 01:55:39 GMT请求时间GMT
 
