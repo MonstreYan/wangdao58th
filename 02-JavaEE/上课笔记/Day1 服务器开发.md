@@ -269,7 +269,7 @@ macos、linux：
 
 虚拟映射：资源文件可以在任意的目录下
 
-#### 直接部署
+#### 直接部署(掌握)
 
 1.需要在tomcat的webapps目录下新建一个目录，用来去存放资源文件。
 
@@ -300,6 +300,95 @@ macos、linux：
 > http://localhost:8080/58th/2.jpg  网络称呼--------->服务器需要做的事情就是需要把这个路径转换成硬盘路径，去查找该文件是否存在--------------> /58th--------> D:/apache-tomcat-8.5.37/webapps/58th  + /2.jpg
 
 
+
+#### 虚拟映射(掌握)
+
+还有一种部署方式，资源文件没有放置在tomcat中，而是可以放置在任意盘符、任意目录下，这种方式叫做虚拟映射。
+
+如何操作呢？
+
+**方式一：**
+
+1.在tomcat的conf/Catalina/localhost目录下，新建一个xml文件(tomcat会获取xml文件的名称当做应用的名称)
+
+2.在xml文件中配置Context节点，配置docBase属性(这个就是应用的硬盘路径)
+
+注意：我们配置的这个映射 xml文件名称叫做th58.xml，内容如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Context docBase="D:\app"/>
+```
+
+如何访问呢？
+
+http://localhost:8080/{应用名}/{文件相对于应用路径的相对路径}
+
+
+
+### Tomcat组件及请求处理流程(熟悉)
+
+**最好，后续整个课程学完之后，写简历的时候可以把这部分掌握**
+
+掌握Tomcat直接部署、虚拟映射等资源部署方式；熟悉Tomcat组件以及请求处理流程
+
+
+
+Tomcat本身是由一系列可以进行配置的组件所组成的，组件的配置可以在server.xml文件中进行。
+
+Tomcat主要的组件如下：
+
+Connector：连接器，主要的功能是负责去接收客户端的请求，并且对客户端的请求做出响应。里面有一个port属性，指的是当前tomcat服务器监听的端口号。如果希望修改端口号，则可以修改此处。会将请求报文解析成为request对象，传递给Engine。
+
+Engine：引擎，对于tomcat来说，也是比较重要的一个组件，起着承上启下的作用，负责去接收Connector处理结果，进一步向后传递给Host
+
+Host：虚拟主机。Host的职责主要是负责去接收Engine传递过来的数据，进一步传递给Context。
+
+Context：应用。(无论是直接部署、还是虚拟映射最终都会被解析成为一个应用).负责去接收Host传递过来的request和response对象
+
+
+
+
+
+以访问http://localhost:8080/th58/2.jpg为例
+
+1.域名解析，得到对应的ip地址
+
+2.和服务端的ip地址以及对应的端口号建立TCP连接
+
+3.客户端发送HTTP请求报文
+
+4.HTTP请求报文在网络中中转传输，到达服务器，被监听着8080端口号Connector接收到
+
+5.Connector会将请求报文解析封装成为request对象，还会提供一个response对象，传递给Engine
+
+6.Engine接收到这两个对象之后，进一步传递给Host
+
+7.Host接收到这两个对象之后，进一步去挑选一个合适的Context进行进一步传递(此时请求的资源路径是/th58/2.jpg,会将/th58当做应用名去查找是否有匹配的应用)
+
+8./th58对应的这个应用得到了request和response之后，此时有效的路径部分变成了/2.jpg，利用docBase和/2.jpg进行拼接，得到文件的绝对路径，查找该文件是否存在
+
+9.如果存在，则将文件的数据写入到response对象中；如果不存在，将404信息写入到response中(超市购物小推车)
+
+10.处理完毕之后，最终Connector会读取response里面的数据，生成HTTP响应报文，传输给客户端
+
+![image-20240413103400195](image/image-20240413103400195.png)
+
+
+
+### Tomcat设置
+
+1.设置端口号
+
+我们访问http://www.cskaoyan.com时，没有端口号，为什么呢？
+
+如果没有端口号，不是说没有使用端口号，而是使用了当前协议的默认端口号，对于http协议来说，默认端口号是80.所以我们需要让tomcat去监听80端口号才可以。
+
+```xml
+<Connector port="80" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+```
 
 
 
