@@ -324,6 +324,8 @@ Zs8Xd3Cv6Nm1GbE
 ## 查看库
 ```sql
 -- 查看所有数据库
+-- mysql安装完毕之后的库不要去动它，不要去修改，甚至去删除。
+-- 如果自己需要去练习，那么自己去创建库、创建表去操作
 show databases;
 
 -- 模糊匹配查找数据库
@@ -373,6 +375,8 @@ create database db_name character set utf8mb4 collate utf8mb4_bin;
 > 比如：希望一个用来存储学生信息的库，应该命名为student_info，而不是studentInfo
 
 阿里编程规范
+
+提一句：如果希望创建一个订单表，应该设置order还是orders呢？按理来说，应该创建一个order表，但是order是mysql里面的一个关键字。如果直接写表名为order，则无法创建。此时我们可以使用t_order。
 
 ![image-20230411110258332](img-database/image-20230411110258332.png)
 
@@ -523,7 +527,7 @@ create table test1(id int);
 <span style=color:red;background:yellow;font-size:30><b>类型</b></span>
 
 - 数字(整数型)
-	- tinyint：1字节。 
+	- tinyint：1字节。 (比如如果数据库里面需要设置一列性别，用数字1、0来表示，完全可以使用tinyint来表示)
 	- <font color=red><b>int(integer)</b></font>: 4字节。
 	- bigint: 8字节。和long比较像。
 - 数字(小数)
