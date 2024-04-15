@@ -1159,10 +1159,22 @@ eg:
 select * from tableName where condition limit number;
 
 -- 偏移量为offsetNumber 从0开始
+select * from tb_name limit 0,10;
+select * from tb_name limit 10,10;
+select * from tb_name limit 20,10;
 select * from tableName where condition limit offsetNumber, number;
 
--- 偏移量offsetNumber
+-- 偏移量offsetNumber:偏移量 number:显示的数据量
 select * from tableName where condition limit number offset offsetNumber;
+
+-- 举个例子
+select * from tb_name limt pagesize offset (currentPage - 1) * pagesize
+-- 要求显示出前10条数据 第1页
+select * from tb_name limit 10 offset 0;
+-- 查询紧接着的10条记录 第2页
+select * from tb_name limit 10 offset 10;
+-- 再查询后面的10条记录 第3页
+select * from tb_name limit 10 offset 20;
 ```
 
 >使用`LIMIT`对数据表查询结果集大小进行限定.
