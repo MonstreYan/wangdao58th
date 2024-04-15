@@ -1466,8 +1466,11 @@ select class from student group by class having max(chinese) > 90 and min(chines
 select class from students group by class having sum(chinese) > 200;
 ```
 
+练习：
 
-# SQL语句执行顺序
+![image-20240415164721250](image/image-20240415164721250.png)
+
+设计上述两张表，分别统计每个学生的平均分、总成绩。
 
 
 ```SQL
