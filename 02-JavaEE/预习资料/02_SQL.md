@@ -1459,8 +1459,8 @@ SELECT <查询内容>|列等 , (聚合函数)|* FROM  <表名字> GROUP BY 列 H
 
 -- 查询班级语文总分大于200的班级(可以显示一下语文总分)
 
--- 查询班级情况，要求学生语文最大的大于等于90，语文最少分大于等于70
-select class from student group by class having max(chinese) > 90 and min(chinese) > 70
+-- 查询班级情况，要求学生语文最高分大于等于90，语文最少分大于等于70
+select class from student group by class having max(chinese) >= 90 and min(chinese) >= 70
 -- 查询班级，语文最小成绩大于等于60，数学也是
 
 select class from students group by class having sum(chinese) > 200;

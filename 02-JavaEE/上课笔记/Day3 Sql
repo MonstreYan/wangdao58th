@@ -1,0 +1,54 @@
+
+create table student(
+	id int,
+	name varchar(20),
+	age int,
+	height float(5,2),
+	weight float(5,2),
+	province varchar(20),
+	id_number varchar(20),
+	telephone varchar(15)
+);
+
+
+create table t_student(
+	id int,
+	name varchar(20),
+	age int,
+	height float(5,2),
+	weight float(5,2),
+	province varchar(20),
+	id_number varchar(20),
+	telephone varchar(15)
+);
+
+create table book_info(
+	seri_number varchar(40),
+	name varchar(30),
+	author varchar(30),
+	publisher varchar(40),
+	publish_time date,
+	price float(7,2),
+	comment varchar(200)
+);
+
+
+登录行为表：
+公司开发了一款内部操作的app，要求员工必须完成每天登录的kpi要求
+要求必须每天登录，如果不能够按照要求，则要扣钱；登录的越频繁，使用的越多，绩效也越高，要求你去设计一张表来去统计员工的登录
+
+create table login_activity(
+	id int,
+	username varchar(30),
+	login_time datetime,
+	device varchar(20),
+	login_ip varchar(30)
+);
+ 用来去模拟用户的使用，形成记录
+insert into login_activity values (1,'空灵', now(), 'iOS','192.168.10.23');
+insert into login_activity values (2,'空灵', '2024-04-15 15:30:32', 'web','192.168.10.29');
+insert into login_activity values (3,'阿齐', '2024-04-15 15:32:32', 'android','192.168.10.56');
+insert into login_activity values (4,'远志', '2024-04-15 15:36:32', 'iOS','192.168.10.87');
+
+统计每个人每天的登录次数
+select username, count(*) as number from login_activity where login_time between '2024-04-15 00:00:00' and '2024-04-15 23:59:59' group by username
