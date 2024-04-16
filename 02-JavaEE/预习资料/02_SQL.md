@@ -1552,6 +1552,7 @@ create table primary_test2(
 - 自动增长必须为索引(主键或unique)
 - 只能存在一个字段为自动增长。
 - 默认为1开始自动增长。
+- **特别需要注意的是：如果设置了主键，那么是不可以赋值null的，但是如果你的主键设置了auto_increment自增，那么是可以赋值null的，数据库会自行去维护自增。**
 
 ```SQL
 create table test_auto_increment(
@@ -1626,7 +1627,7 @@ insert into test_auto_increment2(name) values ("lisi");
 
 
 
-**null约束**
+**null约束(非空约束)**
 
 - null不是数据类型，是列的一个属性。一个具体的值
 - 表示当前列是否可以为null，表示什么都没有
@@ -2074,6 +2075,8 @@ SELECT * FROM customer c RIGHT OUTER JOIN orders o ON c.id=o.customer_id WHERE o
 
 
 > <span style='color:red;background:yellow;font-size:文字大小;font-family:字体;'>**连接查询最重要的，是找到连接的条件。**</span>
+>
+> 如何找到连接的条件？多张表之间会存在关系，需要先找出关系是哪个字段来进行维护的。
 
 ## 子查询
 
@@ -2098,6 +2101,19 @@ select * from customer c inner join orders o on c.id = o.customer_id and c.name 
 
 不建议大家用。效率差。因为每一层查询会生成临时表
 
+
+
+案例：要求统计customer表中每个顾客的消费金额。
+
+```sql
+select * from customer c left join orders o on c.id=o.customer_id;
+
+select temp.name,sum(temp.price) from (select c.name,o.price from customer c left join orders o on c.id=o.customer_id) temp group by temp.name;
+
+```
+
+
+
 ## 案例
 
 行列互换
@@ -2115,6 +2131,14 @@ select id,name,class,english from student
 union all
 select id,name,class,math from student) t group by t.name;
 
+
+---------使用union，如果某个人的英语、数学、语文成绩如果相同，则会去重，需要使用union all
+select temp.name,avg(score),sum(score) from
+(select id,name,class,chinese as score from student
+union 
+select id,name,class,english as score from student
+union
+select id,name,class,math as score from student) temp group by temp.name;
 ```
 
 
@@ -2156,9 +2180,9 @@ SQL支持把多个SQL语句的结果拼装起来。
 ```sql
 -- 写了两个SQL。把两个SQL的结果拼接起来
 
-select * from students where class = '一班'
+select * from student where class = '一班'
 union
-select * from students where class = '二班';
+select * from student where class = '二班';
 
 -- union要求返回的列数目要一致 
 
@@ -2168,6 +2192,16 @@ select * from students where class in ('一班','二班');
 -- 当上面这个SQL语句查询速度很慢的时候，可以考虑union联合查询来提高效率。
 
 -- union all  会把sql的结果，直接拼接起来。
+
+
+--查询订单金额小于500的订单
+select * from orders where price < 200;
+--查询郭靖的订单
+select * from orders where customer_id=1;
+--查询上述两个查询的联合查询结果集
+select * from orders where price < 200
+union
+select * from orders where customer_id=1;
 ```
 
 ## 数据库的备份与恢复(了解)
