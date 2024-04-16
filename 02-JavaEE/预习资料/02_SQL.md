@@ -1552,6 +1552,7 @@ create table primary_test2(
 - 自动增长必须为索引(主键或unique)
 - 只能存在一个字段为自动增长。
 - 默认为1开始自动增长。
+- **特别需要注意的是：如果设置了主键，那么是不可以赋值null的，但是如果你的主键设置了auto_increment自增，那么是可以赋值null的，数据库会自行去维护自增。**
 
 ```SQL
 create table test_auto_increment(
@@ -1626,7 +1627,7 @@ insert into test_auto_increment2(name) values ("lisi");
 
 
 
-**null约束**
+**null约束(非空约束)**
 
 - null不是数据类型，是列的一个属性。一个具体的值
 - 表示当前列是否可以为null，表示什么都没有

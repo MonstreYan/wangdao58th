@@ -1,0 +1,100 @@
+create table user(
+	id int,
+	name varchar(30),
+	nickname varchar(30),
+	gender varchar(20),
+	height int,
+	weight int,
+	score float
+);
+
+alter table user add age int;
+
+alter table user modify height float;
+
+insert into user values (1,'空灵','bingege','male',173,72,98.0),(),(),(),()
+
+update user set name='乔峰' where id=10;
+
+update user set gender='男' where id != 1 and id != 2;
+
+update user set gender='男' where id not in (1,2);
+
+=========================================
+create table student(
+	id int,
+	name varchar(20),
+	chinese float,
+	english float,
+	math float
+);
+
+alter table student add birthday date,add province varchar(20);
+
+alter table student modify chinese int;
+
+select * from student where name like '王%';
+
+select * from student where chinese < 60 and english < 60 and math < 60;
+
+select name from student where chinese < 60 or english < 60 or math < 60;
+
+select name from student where (chinese > 90 and english > 90) or (english > 90 and math > 90) or (chinese > 90 and math > 90);
+
+select name from student where chinese >= 60 and english >= 60 and math >= 60;
+
+
+====================================================
+create table student(
+	id int,
+	name varchar(20),
+	gender varchar(20),
+	age int,
+	dept varchar(30),
+	college varchar(30)
+);
+insert into student values (201801,'张三','male',25,'大数据','计算机科学系');
+insert into student values (201802,'李四','female',24,'人工智能','信息系');
+
+
+
+select id,name from student;
+
+select * from student;
+
+select name, (2024 - age) as year,colleage as bumen from student;
+
+select name,age from student where age < 20;
+
+select name,college,age from student where age between 20 and 23;
+
+select name,college,age from student where age not between 20 and 23;
+
+
+select name,gender from student where college in ('信息系','数学系','计算机科学系');
+
+select name,gender from student where college not in ('信息系','数学系','计算机科学系');
+
+select * from student where id = 200518;
+
+select name,id,gender from student where name like '刘%';
+
+select name from student where name like '李_';
+
+select name,id from student where name like '_立%';
+
+select name from student where name not like '刘%';
+
+
+select name from student where id between 201801 and 201809;
+
+select college, count(*) from student group by college;
+
+
+select college, avg(age) as avg_age from student group by college order by avg_age desc;
+
+select name from student where college='计算机科学系' and age < 20;
+
+select * from student order by id asc,age desc;
+
+
