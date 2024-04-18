@@ -2,7 +2,7 @@
 
 
 
-## 概念
+## 概念(掌握)
 
 JDBC全称其实叫做java database connectivity.便是使用java语言来访问连接数据库的方式。
 
@@ -44,7 +44,7 @@ JDBC全称其实叫做java database connectivity.便是使用java语言来访问
 
 
 
-## JDBC入门案例
+## JDBC入门案例(掌握)
 
 概括一下数据库的连接过程：
 
@@ -131,7 +131,7 @@ public class JdbcDemo1 {
 
 
 
-## 入门案例优化
+## 入门案例优化(掌握)
 
 1.关于获取connection连接以及最终的关闭连接、释放资源等操作，在不同的场景中代码基本上都是完全一致的。所以我们希望可以将这部分代码进行优化。抽提一个工具类，调用工具类。
 
@@ -355,7 +355,7 @@ public class JdbcUtil {
 
 
 
-## JDBC对象详解
+## JDBC对象详解(掌握)
 
 ### DriverManager
 
@@ -477,7 +477,7 @@ Connection、Statement、ResultSet对象，这些对象应当在使用完之后�
 
 
 
-## 增删改查
+## 增删改查(掌握)
 
 使用JDBC来进行数据库的增晒改查操作。
 
@@ -650,7 +650,7 @@ public class QueryDemo {
 }
 ```
 
-## Sql注入问题
+## Sql注入问题(掌握)
 
 先使用一个案例，演示一个现象，利用这个现象给大家讲解sql注入问题。
 
@@ -778,7 +778,182 @@ public class MockLogin2 {
 
 使用预编译的statement对象，也就是**preparedStatement会执行一次操作，和数据库通讯两次，相较于statement有一些劣势，但是它带来了安全上的提升，所以是非常有必要的**。
 
-![image-20240418115054615](assets/image-20240418115054615.png)
+![image-20240418143045312](assets/image-20240418143045312.png)
 
 **所以，今后开发过程中，尽量去写PreparedStatement**。
+
+
+
+## 批处理(熟悉)
+
+如果我们需要向数据库中进行批量的插入数据或者批量的修改数据，那么利用目前的方法，只能够一条一条进行处理。使用批处理相当于一次性可以把多条sql语句一次性地传输给数据库，让数据库进行执行操作。
+
+没有使用批处理之前，我们如果希望进行批量插入操作，则可以使用下面的方式：
+
+这种方式其实背后的原理相当于每次从客户端携带一条sql语句传输给数据库执行；随后再次携带一条sql语句传输给数据库进行执行.......循环往复操作。类比为在两地进行搬砖，但是每次只搬运一块砖，效率是比较低下的；
+
+使用批处理的话，相当于一次性可以搬运多块砖，减少了来回往复的成本。
+
+![image-20240418144322820](assets/image-20240418144322820.png)
+
+Statement批处理：
+
+```java
+public class BatchStatementDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            for (int i = 1; i < 1000; i++) {
+                //往statement的缓冲区中去填充sql语句，往小推车里面去添加
+                statement.addBatch("insert into user values (null,' username"+ i + "','password" + i + "')");
+                //设定每200条sql语句发一次车，集中将200条sql语句一次性全部发送到数据库
+                if(i % 200 == 0){
+                    //发车
+                    statement.executeBatch();
+                    //清空缓冲区里面存储的sql语句
+                    statement.clearBatch();
+                }
+            }
+            //全部处理完毕之后，801-999这些数据没有进入到if条件语句中
+            statement.executeBatch();
+            //至于是否需要clearBatch，可以clear也可以不clear，因为程序即将结束，statement即将被关闭
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, statement, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+}
+```
+
+PreparedStatement批处理：
+
+```java
+public class BatchPreparedStatementDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            preparedStatement = connection.prepareStatement("insert into user values (null, ?, ?)");
+            for (int i = 1; i < 1000; i++) {
+                //填充，一次性发车
+                preparedStatement.setString(1, "username" + i);
+                preparedStatement.setString(2, "password" + i);
+                //把这些参数填充到缓冲区中
+                preparedStatement.addBatch();
+                if(i % 200 == 0){
+                    //运送到数据库去执行
+                    preparedStatement.executeBatch();
+                    //清空一次缓冲区
+                    preparedStatement.clearBatch();
+                }
+            }
+            //801-999数据没有装车，需要再发一次车
+            preparedStatement.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, preparedStatement, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+```
+
+案例：使用statement常规处理、PreparedStatement常规处理、Statement批处理、PreparedStatement批处理分别进行数据的插入操作，比较一下各自花费的时间。
+
+默认情况下，mysql的批处理没有开启，如果需要开启批处理的功能，需要在url后面设置一个参数rewriteBatchedStatements=true
+
+```properties
+url=jdbc:mysql://localhost:3306/58_work?characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true
+username=root
+password=123456
+driver=com.mysql.cj.jdbc.Driver
+```
+
+
+
+
+
+```java
+public class BatchInsertCompare {
+
+    public static void main(String[] args) throws SQLException {
+        //为了去评估各自的时间，打印一些当前的时间点
+        Connection connection = JdbcUtil.getConnection();
+        long t1 = System.currentTimeMillis();
+        ordianryStatement(connection);
+        long t2 = System.currentTimeMillis();
+        ordinaryPreparedStatement(connection);
+        long t3 = System.currentTimeMillis();
+        batchStatement(connection);
+        long t4 = System.currentTimeMillis();
+        batchPreparedStatement(connection);
+        long t5 = System.currentTimeMillis();
+        System.out.println("常规statement：" + (t2 - t1) + "ms");
+        System.out.println("常规PreparedStatement:" + (t3 - t2) + "ms");
+        System.out.println("批处理statement：" + (t4 - t3) + "ms");
+        System.out.println("批处理PreparedStatement:" + (t5 - t4) + "ms");
+    }
+
+    private static void batchPreparedStatement(Connection connection) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("insert into user values (null, ?, ?)");
+        for (int i = 1; i < 1001; i++) {
+            preparedStatement.setString(1, "username" + i);
+            preparedStatement.setString(2, "password" + i);
+            preparedStatement.addBatch();
+        }
+        //一次性将全部的参数发送到数据库
+        preparedStatement.executeBatch();
+        preparedStatement.clearBatch();
+        preparedStatement.close();
+    }
+
+    private static void batchStatement(Connection connection) throws SQLException {
+        Statement statement = connection.createStatement();
+        for (int i = 1; i < 1001; i++) {
+            statement.addBatch("insert into user values (null,'username" + i + "','password" + i + "')");
+        }
+        statement.executeBatch();
+        statement.clearBatch();
+        statement.close();
+    }
+
+    //常规preparedStatement
+    private static void ordinaryPreparedStatement(Connection connection) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement("insert into user values (null, ?, ?)");
+        for (int i = 1; i < 1001; i++) {
+            preparedStatement.setString(1, "username" + i);
+            preparedStatement.setString(2, "password" + i);
+            preparedStatement.executeUpdate();
+        }
+        preparedStatement.close();
+    }
+
+    //常规statement
+    private static void ordianryStatement(Connection connection) throws SQLException {
+        Statement statement = connection.createStatement();
+        for (int i = 1; i < 1001; i++) {
+            statement.executeUpdate("insert into user values (null,'username" + i + "','password" + i + "')");
+        }
+        statement.close();
+    }
+}
+```
+
+
 
