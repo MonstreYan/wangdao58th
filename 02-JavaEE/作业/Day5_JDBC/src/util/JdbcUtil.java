@@ -1,9 +1,6 @@
-package com.cskaoyan.jdbc.util;
-
-import com.mysql.cj.jdbc.Driver;
+package util;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Properties;
@@ -16,8 +13,6 @@ public class JdbcUtil {
 
     private static String password;
 
-    private static String driver;
-
     static {
         //因为properties配置文件的改动并没有那么地频繁，所以不用每次获取连接时都去读取一遍
         Properties properties = new Properties();
@@ -29,7 +24,6 @@ public class JdbcUtil {
         url = properties.getProperty("url");
         username = properties.getProperty("username");
         password = properties.getProperty("password");
-        driver = properties.getProperty("driver");
     }
 
     //工具类里面的异常其实可以放心的抛出来，谁调用，谁处理这个异常
@@ -40,7 +34,7 @@ public class JdbcUtil {
         //todo 如果由使用mysql更换为使用oracle，那么不仅上述的url、username、password需要变动，driver也需要变动
 //        DriverManager.registerDriver(new Driver());
         try {
-            Class.forName(driver);
+            Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

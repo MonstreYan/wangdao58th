@@ -1,7 +1,6 @@
-package com.cskaoyan.jdbc;
+package com.cskaoyan.jdbc.introduction;
 
 import com.cskaoyan.jdbc.util.JdbcUtil;
-import com.mysql.cj.jdbc.Driver;
 
 import java.sql.*;
 

@@ -286,7 +286,260 @@ public class Driver extends NonRegisteringDriver implements java.sql.Driver {
 }
 ```
 
+我们实际上只需要让Driver类里面的static代码块能够被调用即可，因为里面会包含注册驱动。如何让static代码库被调用呢？利用反射加载当前类。
 
+Class.forName(com.mysql.cj.jdbc.Driver);因为里面写的是全限定类名，所以可以将这部分写到配置文件中去，从配置文件中去读取。
+
+**最终的形式**：
+
+![image-20240418100547983](assets/image-20240418100547983.png)
+
+```java
+public class JdbcUtil {
+
+    private static String url;
+
+    private static String username;
+
+    private static String password;
+
+    //新增的部分
+    private static String driver;
+
+    static {
+        //因为properties配置文件的改动并没有那么地频繁，所以不用每次获取连接时都去读取一遍
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream("jdbc.properties"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        url = properties.getProperty("url");
+        username = properties.getProperty("username");
+        password = properties.getProperty("password");
+        driver = properties.getProperty("driver");
+    }
+
+    //工具类里面的异常其实可以放心的抛出来，谁调用，谁处理这个异常
+    //获取连接
+    public static Connection getConnection() throws SQLException {
+
+
+        //todo 如果由使用mysql更换为使用oracle，那么不仅上述的url、username、password需要变动，driver也需要变动
+//        DriverManager.registerDriver(new Driver());
+        try {
+            Class.forName(driver);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        //获取连接 url:固定写法 jdbc协议  mysql子协议 localhost:3306服务器的ip地址以及端口号 /58_work指的是通讯的数据库
+        Connection connection = DriverManager.getConnection(url, username, password);
+        return connection;
+    }
+
+
+    //释放资源
+    public static void close(Connection connection, Statement statement, ResultSet resultSet) throws SQLException {
+        if(connection != null){
+            connection.close();
+        }
+        if(statement != null){
+            statement.close();
+        }
+        if(resultSet != null){
+            resultSet.close();
+        }
+    }
+}
+```
+
+
+
+## JDBC对象详解
+
+### DriverManager
+
+驱动管理器，主要的功能有两个：1.注册驱动  2.获取连接
+
+注册驱动
+
+```java
+//但是需要注意的是这里面new的Driver必须是实现类，不可以是jdbc中的规范接口
+DriverManager.registerDriver(new Driver());
+//实际上，后面我们并不会直接去写这部分代码，而是通过下面的代码来代替
+//为什么能够代替上述代码呢？因为com.mysql.cj.jdbc.Driver内部有一个static代码块，当我们运行下面代码时，会触发static代码块，代码块里面会进行驱动的注册
+Class.forName("com.mysql.cj.jdbc.Driver");
+```
+
+获取连接
+
+```java
+//这行代码你可以理解为就是对于 mysql -u root -p 这条指令的封装
+Connection conn = DriverManager.getConnection(url,username,password);
+```
+
+其中关于获取连接中url部分的写法：它是一个相对固定的写法，并且使用不同的数据库，写法不是完全相同的，对于大家的要求是尽量熟悉mysql数据库连接信息的写法
+
+url=jdbc:mysql://localhost:3306/db_name
+
+其中关于url的后面还是可以去拼接一些参数的。比如常见的设置字符集的参数信息。
+
+jdbc:mysql://localhost:3306/db_name?characterEncoding=utf-8&useUnicode=true&useSSL=false
+
+useSSL=false表示的是不使用https进行连接。也就是用不用证书。
+
+### Connection
+
+其实就是指的是客户端和数据库之间建立的一个连接的抽象封装。比如，之前使用命令行输入mysql -u root -p之后，便进入到了一个mysql的会话窗口，那个便是一个连接。
+
+Connection的功能只要如下：
+
+1.获取操作sql语句的Statement对象
+
+```java
+
+Statement smt = connection.createStatement();
+
+//下面这个和上面的是父子关系，功能非常接近
+PreparedSatatement psmt = connection.prepareStatement();
+```
+
+
+
+2.事务相关操作(TBD)
+
+
+
+
+
+### Statement
+
+主要的功能是用来发送sql语句
+
+```java
+//这个方法只可以用于进行查询操作，不可以进行增删改
+ResultSet rs = statement.executeQuery(sql);
+
+//如果希望进行增删改操作，则需要使用下面的方法;返回值表示的是影响的行数
+int rows = statement.executeUpdate(sql);
+```
+
+
+
+### ResultSet
+
+表示的是结果集，改对象内部相当于封装了一个表格。内部会有一个游标、指针，默认情况下是指向第一行数据之前。
+
+当我们调用一次next()方法，那么游标会移动一次，会把这一行对应的数据获取到，所以，如果我希望获取全部的数据，应该怎么办？
+
+循环往复去调用next方法
+
+```java
+public class ResultSetDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("select * from student");
+            //改方法返回值类型为boolean，表示的是是否有下一行数据
+//            resultSet.next()
+            //新增的部分代码
+            while (resultSet.next()){
+                //resultSet.next()和iterator的方法非常类似，只不过相较于iterator更加简单，只需要调用next这一个方法即可
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                System.out.println(id + " " + name);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection,statement,resultSet);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+```
+
+
+
+![image-20240418102345112](assets/image-20240418102345112.png)
+
+说明：
+
+Connection、Statement、ResultSet对象，这些对象应当在使用完之后及时地进行关闭，释放资源。**尤其是Connection对象，它是一个非常稀缺的资源，应当遵循尽量晚创建，尽量早释放的原则**。
+
+
+
+## 增删改查
+
+使用JDBC来进行数据库的增晒改查操作。
+
+### 新增
+
+```java
+public class InsertDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            //里面写入insert语句
+            int rows = statement.executeUpdate("insert into student(id,name) values (null,'阿齐')");
+            System.out.println(rows);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, statement, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+}
+```
+
+
+
+### 删除
+
+```java
+public class DeleteDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            int rows = statement.executeUpdate("delete from student where id = 7");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, statement, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+}
+```
+
+
+
+### 修改
 
 
 
