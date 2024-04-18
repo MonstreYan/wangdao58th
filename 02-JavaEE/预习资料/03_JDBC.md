@@ -834,35 +834,6 @@ MySQL的可重复，可以解决部分幻读问题，不能完全解决。
 
 
 
-```JAVA
-后端工程
-https://gitee.com/snow-lee/java-gui
-
-前端工程
-https://gitee.com/snow-lee/vue-gui
-
-尝试把这两个项目起起来了。 然后如果能看懂后端代码，能改更好。
-    前端这块，能改更好。 
-    
-    conntroller   ===> 服务器内部路径
-    service  
-    mapper(dao)
-```
-
-
-
-工作过程需要的数据库知识，我们已经具备了。
-
-但是面试的时候，会被问的问题有很多很多。 
-
-关于数据库这块，建议多学。 
-
-
-
-leetcode和学学数据库的问题。 
-
-锦上添花
-
 
 
 

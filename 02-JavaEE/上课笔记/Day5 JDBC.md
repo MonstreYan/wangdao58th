@@ -541,7 +541,244 @@ public class DeleteDemo {
 
 ### 修改
 
+```java
+public class UpdateDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            int i = statement.executeUpdate("update student set name='kongling' where id = 6");
+            System.out.println(i);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, statement, null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+```
 
 
 
+### 查询
+
+在查询的时候，会调用resultSet.getXXX()方法，那么应当调用哪个方法呢？
+
+实际上，关于数据库的数据类型和java的数据类型以及jdbc中的getXXX方法有一个对应关系：
+
+![image-20240418110206430](assets/image-20240418110206430.png)
+
+```java
+public class QueryDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("select * from student where id >= 2");
+            //查询全部的数据
+            while (resultSet.next()){
+                //是否有下一行数据，和iterator的用法基本是一致的，只不过比iterator少调用一个方法
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                int gender = resultSet.getInt("gender");
+                Date entryDate = resultSet.getDate("entry_date");
+                int mid = resultSet.getInt("mid");
+                System.out.println(id + "`" + name + "`" + gender + "`" + entryDate + "`" + mid + "`");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, statement, resultSet);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+}
+```
+
+小案例：
+
+希望大家去新建一个Student类，将数据库查询出来的数据封装成为List<Student>集合类型。
+
+```java
+public class QueryDemo {
+
+    public static void main(String[] args) {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        List<Student> studentList = new ArrayList<>();
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery("select * from student where id >= 2");
+            //查询全部的数据
+            while (resultSet.next()){
+                //是否有下一行数据，和iterator的用法基本是一致的，只不过比iterator少调用一个方法
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                int gender = resultSet.getInt("gender");
+                Date entryDate = resultSet.getDate("entry_date");
+                int mid = resultSet.getInt("mid");
+                studentList.add(new Student(id, name, gender, entryDate, mid));
+                System.out.println(id + "`" + name + "`" + gender + "`" + entryDate + "`" + mid + "`");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, statement, resultSet);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        //后续可以进一步去处理studentList里面的数据
+    }
+}
+```
+
+## Sql注入问题
+
+先使用一个案例，演示一个现象，利用这个现象给大家讲解sql注入问题。
+
+写一个案例，来模拟用户的登录行为，用户输入用户名、密码信息，传输到数据库之后，数据库需要对用户的用户名、密码进行校验。
+
+> JDBC过程中遇到问题，应该如何解决？
+>
+> 需要排除究竟是sql语句本身的问题还是jdbc过程的问题。怎么办？
+>
+> 有一个比较容易量化的方式，那就是直接将sql语句放到命令行中去执行，如果有问题，那么便是sql语句有问题；如果没有问题，那么便是jdbc过程中有问题。
+
+输入注释中写出来的密码，会导致sql注入问题。何为sql注入问题呢？
+
+用户输入的一些字符被当做了sql的关键字来进行解析；产生了一些和业务本身无关的操作。比如额外进行了查询，甚至严重产生了删除修改操作等。xxxx;delete from user;
+
+对于系统来说，是一个极大的风险。
+
+如何避免sql注入问题呢？
+
+```java
+public class MockLogin {
+
+    public static void main(String[] args) {
+        //模拟用户的登录行为
+        //使用scanner来模拟用户输入的用户名、密码信息
+        Scanner scanner = new Scanner(System.in);
+        //去构造一个伪造的用户名、密码信息，用户名随便写；密码 : 1234' or '1' = '1
+        String username = scanner.nextLine();
+        String password = scanner.nextLine();
+
+
+        //获取到了用户输入的用户名、密码，需要校验用户名、密码是否匹配
+        //select * from user where username = xxx and password = xxx
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = JdbcUtil.getConnection();
+            statement = connection.createStatement();
+            String sql = "select * from user where name = '" + username + "' and password = '" + password + "'";
+            System.out.println(sql);
+            resultSet = statement.executeQuery(sql);
+            if(resultSet.next()){
+                //用户名、密码匹配
+                System.out.println("用户名密码匹配");
+            }else {
+                //用户名、密码不匹配
+                System.out.println("用户名密码错误");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, statement, resultSet);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+}
+
+```
+
+sql注入问题产生的根源？
+
+回顾一下数据库执行sql语句的过程：客户端将sql语句传递给数据库服务器，数据库会对这条sql语句进行解析处理，解析成为一个机器语言(最终一个功能的调用，最终肯定是调用了操作系统的某个方法，操作系统又向硬件申请了对应的权限)。**sql注入产生的根源是否就是用户输入的一些字符被当做了sql的关键字进行了解析，产生了意想不到的功能。**如果我希望避免sql注入问题，那是否意味着我不把用户输入的这些字符进行解析就可以了？？？？？？
+
+所以，我们可以这么去做：
+
+**1.先将用户输入参数的位置先用占位符先占着，把没有填充参数的sql语句先发送到数据库进行解析操作**
+
+**2.再填充上对应的参数(用户输入的参数)**
+
+![image-20240418113633190](assets/image-20240418113633190.png)
+
+```java
+//解决sql注入问题
+public class MockLogin2 {
+
+    public static void main(String[] args) {
+        //模拟用户的登录行为
+        //使用scanner来模拟用户输入的用户名、密码信息
+        Scanner scanner = new Scanner(System.in);
+        //去构造一个伪造的用户名、密码信息，用户名随便写；密码 : 1234' or '1' = '1
+        String username = scanner.nextLine();
+        String password = scanner.nextLine();
+
+
+        //获取到了用户输入的用户名、密码，需要校验用户名、密码是否匹配
+        //select * from user where username = xxx and password = xxx
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = JdbcUtil.getConnection();
+//            connection.createStatement();
+            //为什么prepareStatement需要提供一个sql，而createStatement不需要？原因在于prepareStatement需要进行预编译
+            //先创建一个preparedStatement，第一次通讯：将sql语句发送到数据库进行预编译
+           preparedStatement = connection.prepareStatement("select * from user where name = ? and password = ?");
+            //第二次通讯：再次填充对应的参数信息
+           preparedStatement.setString(1, username);
+           preparedStatement.setString(2, password);
+           resultSet = preparedStatement.executeQuery();
+            if(resultSet.next()){
+                //用户名、密码匹配
+                System.out.println("用户名密码匹配");
+            }else {
+                //用户名、密码不匹配
+                System.out.println("用户名密码错误");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                JdbcUtil.close(connection, preparedStatement, resultSet);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+}
+```
+
+使用预编译的statement对象，也就是**preparedStatement会执行一次操作，和数据库通讯两次，相较于statement有一些劣势，但是它带来了安全上的提升，所以是非常有必要的**。
+
+![image-20240418115054615](assets/image-20240418115054615.png)
+
+**所以，今后开发过程中，尽量去写PreparedStatement**。
 

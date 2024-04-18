@@ -1,4 +1,4 @@
-package com.cskaoyan.jdbc.object;
+package com.cskaoyan.jdbc._03crud;
 
 import com.cskaoyan.jdbc.util.JdbcUtil;
 
@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class StatementDemo {
+public class UpdateDemo {
 
     public static void main(String[] args) {
         Connection connection = null;
@@ -14,9 +14,8 @@ public class StatementDemo {
         try {
             connection = JdbcUtil.getConnection();
             statement = connection.createStatement();
-//            statement.executeQuery()
-            int rows = statement.executeUpdate("insert into student values (null,'空灵',1,'2020-10-01',1)");
-            System.out.println(rows);
+            int i = statement.executeUpdate("update student set name='kongling' where id = 6");
+            System.out.println(i);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }finally {
@@ -26,6 +25,5 @@ public class StatementDemo {
                 throw new RuntimeException(e);
             }
         }
-
     }
 }

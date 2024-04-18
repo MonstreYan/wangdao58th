@@ -1,4 +1,4 @@
-package com.cskaoyan.jdbc.introduction;
+package com.cskaoyan.jdbc._01introduction;
 
 import com.cskaoyan.jdbc.util.JdbcUtil;
 

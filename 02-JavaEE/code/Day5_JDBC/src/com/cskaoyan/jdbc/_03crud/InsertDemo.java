@@ -1,4 +1,4 @@
-package com.cskaoyan.jdbc.crud;
+package com.cskaoyan.jdbc._03crud;
 
 import com.cskaoyan.jdbc.util.JdbcUtil;
 

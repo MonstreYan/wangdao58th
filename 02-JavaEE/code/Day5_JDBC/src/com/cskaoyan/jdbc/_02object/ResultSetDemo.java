@@ -1,4 +1,4 @@
-package com.cskaoyan.jdbc.object;
+package com.cskaoyan.jdbc._02object;
 
 import com.cskaoyan.jdbc.util.JdbcUtil;
 

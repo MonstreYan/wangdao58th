@@ -1,4 +1,4 @@
-package com.cskaoyan.jdbc.introduction;
+package com.cskaoyan.jdbc._01introduction;
 
 import com.mysql.cj.jdbc.Driver;
 
