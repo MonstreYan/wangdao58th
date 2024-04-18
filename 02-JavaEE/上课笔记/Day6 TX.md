@@ -32,6 +32,8 @@ ACID
 
 sql标准委员会针对上述提及的隔离级别以及隔离问题是有一个标准的：
 
+需要特别指出一点，mysql的repeatable read的隔离级别和sql标准委员会设定的标准规范略有一些不同，它似乎解决了虚幻读的问题，但是似乎又没有彻底地解决。
+
 ![image-20240418160523708](assets/image-20240418160523708.png)
 
 ### 隔离问题
@@ -146,4 +148,42 @@ set global transaction isolation level read committed;
 > 如果你希望保证数据的最新时效性，那么可以让其出现不可重复读问题，但是此时数据的一致性便会受到影响。所以需要我们开发过程中进行评估，你究竟是想要时效性还是一致性。
 
 ![image-20240418163846698](assets/image-20240418163846698.png)
+
+
+
+### 虚幻读演示
+
+set global transaction isolation level repeatable read.
+
+演示解决了不可重复读
+
+![image-20240418170910951](assets/image-20240418170910951.png)
+
+演示虚幻读：
+
+![image-20240418171237883](assets/image-20240418171237883.png)
+
+
+
+## JDBC事务
+
+上述是给大家介绍了如何使用命令行来操作事务。在开发过程中，我们需要使用代码来完成事务操作功能。
+
+JDBC事务其实本质上来说，便是对于事务sql指令的进一步封装。
+
+start transaction----------connection.setAutoCommit(false)
+
+commit----------------connection.commit()
+
+rollback----------------connection.rollback()
+
+
+
+案例：使用JDBC来完成转账案例
+
+
+
+
+
+
 
