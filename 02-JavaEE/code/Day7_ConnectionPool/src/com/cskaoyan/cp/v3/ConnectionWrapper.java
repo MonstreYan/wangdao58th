@@ -2,7 +2,9 @@ package com.cskaoyan.cp.v3;
 
 import com.mysql.cj.jdbc.ConnectionImpl;
 
+import javax.sql.DataSource;
 import java.sql.*;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
@@ -17,13 +19,17 @@ public class ConnectionWrapper implements Connection {
 //    ConnectionImpl connection;
     Connection connection;
 
+    //connection的包装类中需要去持有池子的引用，否则无法将本身放回连接池
+    LinkedList<Connection> connectionPool;
+
     //利用构造函数把真正会干活的connection对象传进来，让它来干活
 //    public ConnectionWrapper(ConnectionImpl connection) {
 //        this.connection = connection;
 //    }
 
-    public ConnectionWrapper(Connection connection) {
+    public ConnectionWrapper(Connection connection, LinkedList<Connection> connectionPool) {
         this.connection = connection;
+        this.connectionPool = connectionPool;
     }
 
     @Override
@@ -33,12 +39,12 @@ public class ConnectionWrapper implements Connection {
 
     @Override
     public PreparedStatement prepareStatement(String sql) throws SQLException {
-        return null;
+        return connection.prepareStatement(sql);
     }
 
     @Override
     public CallableStatement prepareCall(String sql) throws SQLException {
-        return null;
+        return connection.prepareCall(sql);
     }
 
     @Override
@@ -48,32 +54,33 @@ public class ConnectionWrapper implements Connection {
 
     @Override
     public void setAutoCommit(boolean autoCommit) throws SQLException {
-
+        connection.setAutoCommit(autoCommit);
     }
 
     @Override
     public boolean getAutoCommit() throws SQLException {
-        return false;
+        return connection.getAutoCommit();
     }
 
     @Override
     public void commit() throws SQLException {
-
+        connection.commit();
     }
 
     @Override
     public void rollback() throws SQLException {
-
+        connection.rollback();
     }
 
     @Override
     public void close() throws SQLException {
         //放回连接池
+        connectionPool.addFirst(this);
     }
 
     @Override
     public boolean isClosed() throws SQLException {
-        return false;
+        return connection.isClosed();
     }
 
     @Override
