@@ -1,4 +1,4 @@
-package com.cskaoyan.tx;
+package com.cskaoyan.tx.transfer;
 
 import com.cskaoyan.tx.util.JdbcUtils;
 
