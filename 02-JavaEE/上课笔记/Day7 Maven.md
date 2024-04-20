@@ -243,6 +243,8 @@ public class StudentTest{
 
 ## 依赖管理
 
+### 坐标
+
 在maven项目中，如果我们进行依赖管理，是不需要再次去导入jar包的。只需要在maven项目的pom.xml文件中去配置对应的依赖说明即可。
 
 <dependencies></dependencies>表示的是所有的依赖。<dependency></dependency>指的是其中的某一个依赖。依赖有以下几个属性所组成，分别是groupId、artifactId、version
@@ -250,6 +252,205 @@ public class StudentTest{
 > groupId、artifactId、version不知道怎么写？不用去记，直接去mvnrepository.com去查看
 
 groupId：指的是公司的名称、组织的名称
+
+artifactId：指的是公司内部项目的名称
+
+version：当前项目的版本号
+
+
+
+此外，还有一个属性，叫做<scope></scope>。可以理解为是当前依赖的作用范围。
+
+比如说juni依赖,里面有一个 scope test，表示的是maven不会对主程序代码提供该依赖；仅仅只会给测试代码提供该依赖。
+
+也就是src\test\java目录下编写的代码可以使用该依赖，但是src\main\java目录下的代码无法使用该依赖。
+
+```xml
+<dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+```
+
+![image-20240420110627547](assets/image-20240420110627547.png)
+
+我们编写的业务逻辑代码位于src\main\java目录下的；而测试代码位于src\test\java目录下
+
+当我们执行编译指令时，maven会分别帮助我们进行编译。如果我们一个junit的依赖设置的scope为test，那么意味着当maven给src\main\java目录下的代码进行编译时，不会提供jar包的路径，对应的代码便无法使用该依赖。
+
+> javac -classpath xxx.jar xxx.java
+
+关于scope，有如下取值：
+
+1.compile：该依赖不仅主程序代码可以使用，测试代码也可以使用；不仅编译时可以使用，运行也可以使用，如果没有设置scope，则默认scope的值便是compile。
+
+**2.provided：该依赖仅在编译时提供，但是运行时不提供，记住唯一的一个特例：servlet-api.jar**。记住Servlet必须写成provided
+
+3.test:该依赖仅针对测试代码有效；主程序代码无效，也就是主程序代码无法使用。junit
+
+4.runtime：该依赖仅针对运行时有效，编译时无效，也就是说，编译的时候不会提供该依赖。mysql-connector-java.jar
+
+### IDEA开发Maven项目
+
+![image-20240420111641629](assets/image-20240420111641629.png)
+
+接下来，还需要做一些配置才可以使用：
+
+File-settings
+
+![image-20240420111802994](assets/image-20240420111802994.png)
+
+上述设置仅仅针对当前项目是生效的，接下来还需要做进一步设置，对新场景的项目也生效:
+
+settings for new projects
+
+![image-20240420111915990](assets/image-20240420111915990.png)
+
+再次搜索maven，设置新项目的maven配置也生效。
+
+
+
+
+
+### 依赖传递(了解、熟悉)
+
+项目A依赖了项目B，项目B依赖了项目C。正常情况下来说，项目A不需要再直接去引入项目C，可以直接使用项目C里面的代码。但是也并不是全部的依赖都可以进行传递，有些依赖是无法进行传递的。但是对于大家来说，也不用去记忆，哪些可以传递，哪些不可以传递，你需要做的事情就是如果遇到没法进行传递的，那么自己再手动引入该依赖即可。
+
+transmission2--------transmission1-----------junit、druid、mysql-connector-java
+
+2的pom.xml文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.cskaoyan.th58</groupId>
+    <artifactId>Day8_Dependency_transmission2</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.cskaoyan.th58</groupId>
+            <artifactId>Day8_Dependency_transmission1</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+
+
+1的pom.xml文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.cskaoyan.th58</groupId>
+    <artifactId>Day8_Dependency_transmission1</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.2.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+那么，通过实验我们可以发现，在2中可以使用druid的代码，但是无法使用junit和mysql-connector-java的代码。如果希望在2中使用上述的依赖，那么直接再引入即可。
+
+
+
+### 依赖冲突
+
+比如当前项目中引入了项目B，项目B引入了项目C的1.0版本
+
+但是当前项目也引入了项目D，项目D也引入了项目C的1.1版本
+
+此时，项目中根据依赖的传递特性，在当前项目中同时会存在1.0和1.1版本，比如说此时maven默认选择了1.0版本，但是我希望使用1.1版本，那么就需要你对于maven的依赖冲突策略有所了解，后续才能够有针对性的去解决这样的问题。
+
+
+
+#### 声明优先策略
+
+比如当前项目中引入了spring-jdbc v5.3.22版本，该依赖进一步引入了spring-beans v5.3.22版本
+
+当前项目也引用了spring-context v5.3.23版本，该依赖进一步引入了spring-beans v5.3.23版本，
+
+此时，如果我希望最终我项目中生效的spring-beans的版本为5.3.23，如果不是该版本，应该如何调整呢？
+
+通过调节下面两个依赖的关系，最终可以发现在external libraries中生效的spring-beans会发生对应的切换。
+
+
+
+```xml
+ <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.29</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>5.3.30</version>
+        </dependency>
+```
+
+
+
+#### 就近原则
+
+上述我们提到的声明优先原则是指的是依赖路径的长度是相同的情况下。
+
+当前项目------spring-jdbc-----spring-beans
+
+当前项目------spring-context----spring-beans
+
+上述两个依赖的路径长度是相等。相等的情况下会选择声明优先。**但是如果我们采取一个最短路径，那么可以覆盖**。
+
+当前项目------spring-jdbc-----spring-beans v5.3.30
+
+当前项目-----spring-beans   v5.3.29   
+
+哪个会生效呢？下面的会生效  v5.3.29
 
 
 
