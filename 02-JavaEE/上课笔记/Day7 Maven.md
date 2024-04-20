@@ -34,5 +34,222 @@ Maven是一个项目构建工具和依赖管理工具。
 
 
 
+## 安装
+
+software目录中有对应的安装包，直接下载到本地进行解压缩即可。不建议大家将软件放置在很深的目录结构下、不要放在含有空格的目录、中文的目录下。
+
+> 如果今后大家在企业中进行开发，需要学习新的内容，如何去查找资料，去下载软件？官网
+>
+> 下载软件的时候，最新版慎用。
+
+
+
+随后进行环境变量的配置
+
+
+
+## 配置
+
+Maven是一个项目构建工具以及依赖管理工具，可以帮助我们去维护管理jar包，究竟是如何维护的呢？
+
+以下配置都是需要去修改conf/settings.xml文件
+
+1.配置中央仓库的国内镜像
+
+在mirrors节点下新增一个mirror节点
+
+```xml
+<mirror>
+        	<id>nexus-aliyun</id>
+        	<mirrorOf>central</mirrorOf>
+        	<name>Nexus aliyun</name>
+        	<url>http://maven.aliyun.com/nexus/content/groups/public</url>
+        </mirror>
+```
+
+![image-20240420095758992](assets/image-20240420095758992.png)
+
+2.配置本地仓库（其实可以不用配置，因为会默认选择一个位置，但是该位置默认是c盘，可以更换一下本地仓库的路径）
+
+```xml
+<localRepository>E:\repository</localRepository>
+```
+
+![image-20240420095646908](assets/image-20240420095646908.png)
+
+3.配置profile信息----设置maven编译的默认版本信息(要求和大家使用的jdk版本保持一致)如果你使用的是jdk8，那么下面配置jdk8的配置；如果你使用的是jdk17，那么配置jdk17的。**一定记得要去配置，如果不去配置，maven的默认编译器是1.5的，可能很多特性都是无法处理的。**
+
+jdk17:
+
+```xml
+ <profile>
+                <id>jdk-17</id>
+                <activation>
+                    <activeByDefault>true</activeByDefault>
+                    <jdk>17</jdk>
+                </activation>
+                <properties>
+                    <maven.compiler.source>17</maven.compiler.source>
+                    <maven.compiler.target>17</maven.compiler.target>
+                    <maven.compiler.compilerVersion>17</maven.compiler.compilerVersion>
+                </properties>
+        </profile>
+```
+
+
+
+jdk8:
+
+```xml
+ <profile>
+                <id>jdk-1.8</id>
+                <activation>
+                    <activeByDefault>true</activeByDefault>
+                    <jdk>1.8</jdk>
+                </activation>
+                <properties>
+                    <maven.compiler.source>1.8</maven.compiler.source>
+                    <maven.compiler.target>1.8</maven.compiler.target>
+                    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+                </properties>
+        </profile>
+```
+
+
+
+
+
+## 项目构建
+
+1.新建一个目录，作为当前的项目。
+
+2.在项目中，我们编写一个HelloWorld.java代码
+
+```java
+public class HelloWorld{
+
+    public static void main(String[] args){
+        System.out.println("hello world");
+    }
+}
+```
+
+随后，我们希望进行编译操作；如果没有maven，此时我们应该怎么办？使用javac指令来进行编译
+
+如果借助于maven，我们应该怎么办呢？非常简单，直接输入一条指令即可。
+
+3.如果希望使用maven来进行项目构建，那么需要创建一个pom.xml配置文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.cskaoyan</groupId>
+    <artifactId>cp</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+</project>
+```
+
+4.maven项目中文件的存储有着严格的要求：
+
+​	源代码文件放置在src\main\java目录下
+
+​	配置文件放置在src\man\resources目录下
+
+​	测试文件放置在src\test\java目录下
+
+​	测试配置文件放置在src\test\resources目录下
+
+
+
+### 常见指令
+
+1.mvn compile
+
+可以帮助我们进行编译操作。maven会帮助我们开发者将所有的源代码文件全部进行编译。
+
+
+
+
+
+
+
+2.mvn clean
+
+可以帮助我们将编译的产物全部删除，也就是删除target目录
+
+
+
+
+
+3.mvn package
+
+默认情况下，maven会帮助我们进行打jar包操作，如果我们希望打war包，可以在pom.xml文件中设置<packaging>war</packaging>
+
+
+
+
+
+4.mvn test
+
+maven还可以帮助我们开发者进行单元测试。如果希望maven帮助我们进行测试，那么需要满足如下几个要求：
+
+1.导入junit依赖(该jar包专门用于进行单元测试的)。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.cskaoyan</groupId>
+    <artifactId>helloworld</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+2.编写对应的代码去测试即可(测试类一般情况下命名叫做XXXTest,里面的方法一般叫做testXXX)
+
+3.测试类的测试方法的头上需要标注@Test注解
+
+```java
+import org.junit.*;
+
+public class StudentTest{
+
+    @Test
+    public void testAge(){
+         Student student = new Student();
+         Assert.assertEquals(18, student.age());
+    }
+}
+```
+
+一切代码准备就绪，编写完毕，运行mvn test指令，那么maven便会帮助我们运行所有标注@Test注解的方法。
+
+
+
+## 依赖管理
+
+在maven项目中，如果我们进行依赖管理，是不需要再次去导入jar包的。只需要在maven项目的pom.xml文件中去配置对应的依赖说明即可。
+
+<dependencies></dependencies>表示的是所有的依赖。<dependency></dependency>指的是其中的某一个依赖。依赖有以下几个属性所组成，分别是groupId、artifactId、version
+
+> groupId、artifactId、version不知道怎么写？不用去记，直接去mvnrepository.com去查看
+
+groupId：指的是公司的名称、组织的名称
+
 
 

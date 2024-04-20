@@ -155,7 +155,7 @@ maven需要解压到一个 <span style='color:red;background:yellow;font-size:�
   </settings>
   ```
   
-- 配置JDK的编译版本（如果是jdk8，那么便配置jdk-18；如果是jdk17，那么便配置jdk-17）
+- 配置JDK的编译版本（如果是jdk8，那么便配置jdk-1.8；如果是jdk17，那么便配置jdk-17）
 
   ```xml
   <settings>
