@@ -593,3 +593,15 @@ public class JdbcProperties {
 | classLoader.getResourceAsStream       | 要求输入一个相对于classpath的相对路径 | 该文件的输入流信息                                    | 该方法其实本质上来说，便是对于classpath目录做了一层封装。    |
 | classLoader.getResource               | 要求输入一个相对于classpath的相对路径 | 返回的是一个URL对象，该对象内部会封装地址、file等信息 |                                                              |
 
+
+
+## 常见问题
+
+1.idea整合maven之后，99%出现的异常问题，都是由于本地maven关联失效
+
+![image-20240422105910913](assets/image-20240422105910913.png)
+
+2.如果一直显示异常，maven无法处理依赖，那么大概率情况下是当前依赖因为网速较慢，下载失败，可以到本地仓库中，将该jar包所在的目录全部删除，重新下载即可。
+
+
+
