@@ -29,7 +29,7 @@ public class DynamicProxy {
             }
         });
 
-
+        //所以，无论是代理类对象的addUser updateUser deleteUser，均是调用的是invocationHandler.invoke()
         proxyInstance.addUser();
 
         proxyInstance.updateUser();

@@ -226,7 +226,7 @@ public class HouseProxy implements HouseRent{
 
 动态代理分为两种实现方式，一种是jdk动态代理；一种是cglib动态代理。
 
-### JDK动态代理
+### JDK动态代理(重点关注)
 
 指的是无需借助于第三方的框架、类库，jdk中提供的动态代理解决方案技术。
 
@@ -335,7 +335,174 @@ public class DynamicProxy {
 
 接下来，我们通过反编译，查看一下代理类的源码。
 
+```java
+public final class $Proxy0
+extends Proxy
+implements UserService {
+    private static final Method m0;
+    private static final Method m1;
+    private static final Method m2;
+    private static final Method m3;
+    private static final Method m4;
+    private static final Method m5;
 
+    static {
+        try {
+            m0 = Class.forName("java.lang.Object").getMethod("hashCode", new Class[0]);
+            m1 = Class.forName("java.lang.Object").getMethod("equals", Class.forName("java.lang.Object"));
+            m2 = Class.forName("java.lang.Object").getMethod("toString", new Class[0]);
+            m3 = Class.forName("com.cskaoyan.th58.proxy.UserService").getMethod("addUser", new Class[0]);
+            m4 = Class.forName("com.cskaoyan.th58.proxy.UserService").getMethod("updateUser", new Class[0]);
+            m5 = Class.forName("com.cskaoyan.th58.proxy.UserService").getMethod("deleteUser", new Class[0]);
+            return;
+        }
+        catch (NoSuchMethodException noSuchMethodException) {
+            throw new NoSuchMethodError(noSuchMethodException.getMessage());
+        }
+        catch (ClassNotFoundException classNotFoundException) {
+            throw new NoClassDefFoundError(classNotFoundException.getMessage());
+        }
+    }
+
+    public final int addUser() {
+        try {
+            return (Integer)this.h.invoke(this, m3, null);
+        }
+        catch (Error | RuntimeException throwable) {
+            throw throwable;
+        }
+        catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    public final int updateUser() {
+        try {
+            return (Integer)this.h.invoke(this, m4, null);
+        }
+        catch (Error | RuntimeException throwable) {
+            throw throwable;
+        }
+        catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    public final int deleteUser() {
+        try {
+            return (Integer)this.h.invoke(this, m5, null);
+        }
+        catch (Error | RuntimeException throwable) {
+            throw throwable;
+        }
+        catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    public $Proxy0(InvocationHandler invocationHandler) {
+        super(invocationHandler);
+    }
+
+    
+
+    public final boolean equals(Object object) {
+        try {
+            return (Boolean)this.h.invoke(this, m1, new Object[]{object});
+        }
+        catch (Error | RuntimeException throwable) {
+            throw throwable;
+        }
+        catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    public final String toString() {
+        try {
+            return (String)this.h.invoke(this, m2, null);
+        }
+        catch (Error | RuntimeException throwable) {
+            throw throwable;
+        }
+        catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    public final int hashCode() {
+        try {
+            return (Integer)this.h.invoke(this, m0, null);
+        }
+        catch (Error | RuntimeException throwable) {
+            throw throwable;
+        }
+        catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    private static MethodHandles.Lookup proxyClassLookup(MethodHandles.Lookup lookup) throws IllegalAccessException {
+        if (lookup.lookupClass() == Proxy.class && lookup.hasFullPrivilegeAccess()) {
+            return MethodHandles.lookup();
+        }
+        throw new IllegalAccessException(lookup.toString());
+    }
+}
+```
+
+
+
+
+
+### Cglib动态代理
+
+如果某些类没有实现接口，是否意味着就无法进行代理增强了呢？此时可以选择另外一种方式，叫做cglib动态代理。
+
+cglib动态代理：通过继承自委托类的方式来进行增强。要求委托类对象不可以是final修饰。
+
+> 需要特别注意的是：cglib的jar包已经很久没有维护了，如果希望使用cglib，需要切换一下jdk版本，改为jdk8.
+
+```java
+public class CglibProxyDemo {
+
+    public static void main(String[] args) {
+        //增强器，便是cglib中用来去创建代理类对象的
+        Enhancer enhancer = new Enhancer();
+
+        //为什么需要设置super class呢？cglib使用的是继承自委托类的方式来实现的
+        UserComponent userComponent = new UserComponent();
+
+
+        enhancer.setSuperclass(userComponent.getClass());
+
+        //非常类似于invocationHandler的功能
+        enhancer.setCallback(new MethodInterceptor() {
+
+            //该方法便是代理类对方法调用时，会调用该方法
+            //第一个参数：obj指的是代理类对象
+            //第二个参数：method指的是当前代理类对象中正在执行的方法
+            //第三个参数：args指的是代理类对象的方法运行时，传递的参数
+            //第四个参数：一般是指的是代理类的方法
+            @Override
+            public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+
+//                method.invoke(userComponent, args)
+                //进一步去调用委托类的方法
+                //这行代码的作用是通过调用代理类对象的方法，代理类对象的方法会进一步调用super也就是父类的同名方法
+                System.out.println("before");
+                //此处是直接调用了代理类的方法，因为代理的方法内部会进一步去调用super，也就是调用了委托类的同名方法
+                Object o = proxy.invokeSuper(obj, args);
+                System.out.println("after");
+                return o;
+            }
+        });
+
+        UserComponent proxy = (UserComponent) enhancer.create();
+        proxy.function();
+    }
+}
+```
 
 
 
