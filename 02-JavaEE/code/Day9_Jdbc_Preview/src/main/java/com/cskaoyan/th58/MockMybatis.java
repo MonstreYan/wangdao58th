@@ -33,7 +33,6 @@ public class MockMybatis {
                 String columnLabel = metaData.getColumnLabel(i + 1);
                 //查询到的列名对应的值，应该赋值给谁？赋值给对应的对象中的同名的属性
                 Object columnValue = resultSet.getObject(columnLabel);
-                System.out.println(columnLabel + ":" + columnValue);
                 //这里面需要做的事情便是去封装数据，利用名称对应来进行封装，比如salary表里面的id、name、salary对应的是Salary类里面的id、name、salary
                 //其实便是查找对应的属性，利用属性的名称去查找对应的属性；属性的名称刚好和列的列名是一致的
                 Field field = clazz.getDeclaredField(columnLabel);
