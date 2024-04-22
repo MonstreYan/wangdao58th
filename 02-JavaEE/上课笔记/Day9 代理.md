@@ -210,7 +210,130 @@ public class HouseProxy implements HouseRent{
 
 1.只要有一个业务功能模块需要进行增强，那么我们便要去实现对应的代理类对象的功能。2.如果我们编写了代理类对象，那么当前接口的维护成本是否意味着加倍了？(接口中如果出现了一点修改，那么委托类和代理类的功能都需要进行修改)
 
-真是因为有上述的原因，我们希望可以在程序运行期间动态地去产生代理类对象，也就是希望可以进行动态代理。
+正是因为有上述的原因，我们希望可以在程序运行期间动态地去产生代理类对象，也就是希望可以进行动态代理。
+
+
+
+## 动态代理
+
+顾名思义，便是在程序运行期间动态地产生代理类对象。
+
+理论基础：
+
+编写的java代码，首先需要进行编译，形成class文件字节码文件(本质上来说，该文件就是二进制文件)。那么该会被加载到内存中，然后读取里面的数据。
+
+那么，现在如果有一种技术，可以直接在内存中生成对应的字节码文件，可不可以起到相同的效果？这个不要去深究，如果想研究，那么工作三年以后可以去研究一下ASM字节码框架。
+
+动态代理分为两种实现方式，一种是jdk动态代理；一种是cglib动态代理。
+
+### JDK动态代理
+
+指的是无需借助于第三方的框架、类库，jdk中提供的动态代理解决方案技术。
+
+使用jdk动态代理的前提条件：委托类对象必须要实现接口。
+
+> 思考：jdk动态代理是如何产生代理类对象的？
+>
+> 1.先拿到委托类对象实现的接口
+>
+> 2.程序运行期间动态地生成代理类对象，实现这些接口
+>
+> 3.在代理类对象的代码中进一步去调用委托类代码
+
+> 反射是什么东西？
+>
+> java代码首先需要进行编译，形成class文件；class文件被类加载器加载到内存中之后，会创建一个Class对象，该对象里面会包含了当前class文件里面的全部语法信息。比如构造函数、成员变量、方法等等
+>
+> 反射便是java语言给我们提供了另外一种操作代码的机制，利用反射其实本质上来说，便是利用Class对象来获取类的信息，比如获取构造函数，再利用反射提供的机制，去调用构造函数，那么便可以实例化对象，或者说给属性赋值、调用方法等等。
+>
+> 
+
+
+
+
+
+
+
+接口：
+
+```java
+public interface UserService {
+
+    int addUser();
+
+    int updateUser();
+
+    int deleteUser();
+}
+```
+
+委托类对象：
+
+```java
+//委托类
+public class UserServiceImpl implements UserService{
+    @Override
+    public int addUser() {
+        System.out.println("add user");
+        return 0;
+    }
+
+    @Override
+    public int updateUser() {
+        System.out.println("update user");
+        return 0;
+    }
+
+    @Override
+    public int deleteUser() {
+        System.out.println("delete user");
+        return 0;
+    }
+}
+```
+
+生成代理类对象：
+
+```java
+public class DynamicProxy {
+
+    public static void main(String[] args) {
+        //提供三个参数：1.加载委托类对象的类加载器  2.委托类对象实现的接口  3.要求提供一个InvocationHandler:代理策略，究竟应该如何去行使代理功能
+        //委托类
+        UserService userService = new UserServiceImpl();
+        UserService proxyInstance = (UserService) Proxy.newProxyInstance(userService.getClass().getClassLoader(), userService.getClass().getInterfaces(), new InvocationHandler() {
+            //当前invoke方法其实就是指的是代理类对象如何去发挥代理功能的逻辑
+            //需要做的事情便是进一步去调用委托类的代码
+            //这个invoke方法 代理类对象会调用；代理类对象需要在内部进一步去调用委托类对象才可以
+
+            //第一个参数：proxy表示的是代理类对象
+            //第二个参数：method表示的是代理类对象中正在执行的方法的名称
+            //第三个参数：args表示的是method执行的时候需要传递的参数
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+                System.out.println(method.getName() + " invoke before");
+                //进一步去调用委托类的代码.方法的返回结果便是指的是当前方法的返回值
+                Object invoke = method.invoke(userService, args);
+                System.out.println(method.getName() + " invoke after");
+                return invoke;
+            }
+        });
+
+
+        proxyInstance.addUser();
+
+        proxyInstance.updateUser();
+
+        proxyInstance.deleteUser();
+
+    }
+}
+```
+
+
+
+接下来，我们通过反编译，查看一下代理类的源码。
 
 
 
