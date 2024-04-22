@@ -454,3 +454,142 @@ transmission2--------transmission1-----------junit、druid、mysql-connector-jav
 
 
 
+#### 排除依赖
+
+比如当前项目中引入了spring-jdbc v5.3.22版本，该依赖进一步引入了spring-beans v5.3.22版本
+
+当前项目也引用了spring-context v5.3.23版本，该依赖进一步引入了spring-beans v5.3.23版本
+
+如果我们希望最终生效的是5.3.23版本的spring-beans，除了使用上述方式之外，还可以使用一种方式：
+
+将5.3.22的spring-beans的依赖排除在外。
+
+```xml
+<dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>5.3.30</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.29</version>
+        </dependency>
+```
+
+
+
+#### 提取常量
+
+在 处理版本冲突的时候，还有一种方式，尤其是针对全家桶的框架，建议的是使用同一个版本号，将这个版本号使用一个常量来进行维护。
+
+```xml
+    <properties>
+        <!--定义的spring的版本信息，也就是一组key=value键值对-->
+        <sprign.version>5.3.30</sprign.version>
+    </properties>
+
+
+<dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>${sprign.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${sprign.version}</version>
+        </dependency>
+```
+
+
+
+## Maven项目配置文件
+
+**在Maven项目中，建议大家把配置文件放置在src\main\resources目录中**。不要放置在项目的根目录中了。因为我们使用maven的话，后续如果使用maven的指令来进行打包操作，那么无论是放置在根目录下的哪个文件，均不会被打包到jar包或者war包中。所以，**在maven项目中，配置文件一定得放置在src\main\resources目录中**。
+
+说明：
+
+1.放置在src\main\resources目录下的文件，经过编译之后，会和src\main\java目录下的文件存放在一起。
+
+3.打包之后，很多API将会无法使用；比如File相对路径可能就无法使用了，所以为了今后打包之后还可以继续使用，我们使用类加载器去获取配置文件的路径
+
+2.放置在src\main\resources目录下的文件，应该如何获取文件的路径、file、流信息呢？
+
+经过之前的演示，我们可以发现：放置在resources目录下的文件和放置在java目录下的文件，经过编译之后，还是在一起的。位于一个叫做classes目录中。这个目录是什么呢？这个目录其实就是当前项目的classpath。既然类加载器可以将类加载到内存中，那么你觉得类加载器知不知道我们的类位于哪个目录中？肯定知道。如果类加载器向外暴露一个方法给开发人员，那么我们能否获取classpath的路径呢？可以。知道了classpath的路径之后，再去获取某个配置文件的路径，那就是非常轻松了。
+
+> classpath:path是环境变量。只要把某一个目录丢到环境变量中，那么我们便可以在任意的目录下输入该指令。也就是我们输入一条指令时，会到哪个地方去查找该指令。
+>
+> classpath是什么呢？仿照着path环境变量来进行设计的一个东西。把所有的类存放的目录设置在一个地方进行保存，后续输入对应的全限定类名的时候，那么直接利用这些目录和全限定类名进行拼接匹配。也就是指的是我们输入一个全限定类名，那么类加载器会到哪个目录下去加载当前的全限定类名。
+>
+> 另一个角度去思考：编写的java代码首先进行编译成class文件。class文件位于硬盘上面，但是运行的时候要求class文件时位于内存中的，这个时候就需要有类加载器负责将class文件加载到内存中。如果类加载器无法得知当前class文件的硬盘路径，如何加载到内存中？所以类加载器肯定是知道class文件的硬盘路径的。
+>
+> 类加载器加载类的时候，是有一个基础路径的，也就是classpath，所以classpath其实就是全限定类名所在的目录
+
+![image-20240422100200559](assets/image-20240422100200559.png)
+
+> Class对象是什么？
+>
+> 如果我们现在有几个学生，那么我们会创建一个Student类，利用类创建对象，也就是有了一个一个的Student对象，Student对象里面会包含学生的信息；
+>
+> 现在我们有很多的.class文件，希望能够知道这些class文件里面有哪些东西(属性、构造函数、成员变量、修饰符.....)，那么，这个时候应该怎么办？定义一个Class类，每当有一个.class文件，那么我们便创建一个Class对象，该Class对象里面会包含当前.class文件里面的描述的所有的内容信息。比如Student.class这个文件对应的Class对象里面会包含当前class文件里面包含哪些构造函数、哪些成员变量、哪些方法、接口信息、权限修饰符信息等等.......
+>
+> 
+
+```java
+package com.cskaoyan.th58;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+// baseDir(classpath) + com/cskaoyan/th58/JdbcProperties.class
+public class JdbcProperties {
+
+    public static void main(String[] args) {
+        //读取jdbc.properties配置文件里面的数据，应该如何读取呢？
+        Properties properties = new Properties();
+        try {
+            //往期同学有使用这种方式来获取位于src\main\resources目录下的文件的路径，可以吗？可以是可以，但是不要用，否则今后项目只要更换地址或者打包，代码无法运行
+//            properties.load(new FileInputStream("D:\\cskaoyan-training-course\\java-58-course-materials\\02-JavaEE\\code\\Day9_MavenResources\\src\\main\\resources\\jdbc.properties"));
+
+            //打包之后，这个也是无法使用的
+            File file = new File("src\\main\\resources\\jdbc.properties");
+            //获取加载当前类的类加载器 当前类的类加载器在Class对象里面也有记录
+            ClassLoader classLoader = JdbcProperties.class.getClassLoader();
+            //参数：要求输入一个相对于classpath的相对路径，返回一个文件的输入流信息
+            InputStream inputStream = classLoader.getResourceAsStream("jdbc.properties");
+//
+
+            String path = classLoader.getResource("jdbc.properties").getPath();
+
+
+            properties.load(inputStream);
+            String username = properties.getProperty("username");
+            String password = properties.getProperty("password");
+            System.out.println(username);
+            System.out.println(password);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+| 方法名称                              | 参数                                  | 返回值                                                | 说明                                                         |
+| ------------------------------------- | ------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------ |
+| 类名.class                            | -                                     | 当前类对应的Class对象                                 | 每一个.class文件被加载到内存中之后，都会创建一个Class对象，该对象就是对于当前.class文件的信息的所有封装 |
+| JdbcProperties.class.getClassLoader() | -                                     | 返回的是加载当前类的类加载器                          | Class里面记录当前类是由哪个类加载器负责加载的                |
+| classLoader.getResourceAsStream       | 要求输入一个相对于classpath的相对路径 | 该文件的输入流信息                                    | 该方法其实本质上来说，便是对于classpath目录做了一层封装。    |
+| classLoader.getResource               | 要求输入一个相对于classpath的相对路径 | 返回的是一个URL对象，该对象内部会封装地址、file等信息 |                                                              |
+
