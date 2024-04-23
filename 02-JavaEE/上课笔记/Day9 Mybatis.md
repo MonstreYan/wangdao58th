@@ -879,11 +879,129 @@ public interface SalaryMapper {
 >
 > 也可以设置编写的位置，比如可以设置在类的头上，也可以在方法的头上
 >
+> ```java
+> //表示的是存在于哪个阶段，我们设置的是运行期间该注解还是存在的
+> @Retention(RetentionPolicy.RUNTIME)
+> //注解可以写在哪个头上；设置的是可以写在类的头上
+> @Target(ElementType.TYPE)
+> public @interface Log {
+> 
+>     String name() default "";
+> }
+> ```
+>
+> ```java
+> @Log(name = "管理员登录")
+> public class AdminLogin {
+> }
+> ```
+>
+> ```java
+> public class AnnotationTest {
+> 
+>     @Test
+>     public void test1(){
+>         //如果我们希望对注解进行处理，那么需要借助于反射
+>         try {
+>             Class<?> aClass = Class.forName("com.cskaoyan.th58.annotation.AdminLogin");
+>             Log log = aClass.getAnnotation(Log.class);
+>             System.out.println(log.name());
+>         } catch (ClassNotFoundException e) {
+>             throw new RuntimeException(e);
+>         }
+>     }
+> }
+> ```
+>
+> 
+>
 > 
 
 
 
-### 多个参数
+### 多个参数(掌握)
+
+此时必须得添加@Param注解
+
+接口：
+
+```java
+    Salary selectByNameAndSalary(@Param("name") String nm,@Param("salary") Double sl);
+
+```
+
+映射文件
+
+```xml
+ <select id="selectByNameAndSalary" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where name = #{name} and salary = #{salary}
+    </select>
+```
+
+
+
+### 对象传值(重点关注)
+
+1.如果传递的参数是一个引用类型的对象，并且没有设置注解的情况。
+
+接口：
+
+```java
+void insertOne(Salary salary);
+```
+
+
+
+映射文件：
+
+```xml
+<insert id="insertOne" parameterType="com.cskaoyan.th58.bean.Salary">
+        insert into salary values (null, #{name}, #{salary});
+    </insert>
+```
+
+注意，此时#{}里面的值，要求和对象里面的属性值是对应的，也就是mybatis通过set方法可以找到对应的属性
+
+
+
+2.如果传递的是一个引用类型的对象，并且设置了注解。
+
+接口：
+
+```java
+    void insertOne2(@Param("s") Salary salary);
+```
+
+映射文件；
+
+```xml
+<insert id="insertOne2" parameterType="com.cskaoyan.th58.bean.Salary">
+        insert into salary values (null, #{s.name}, #{s.salary})
+    </insert>
+```
+
+
+
+
+
+3.如果传递了多个对象呢？
+
+接口：
+
+```java
+    void insertOne3(@Param("s") Salary salary,@Param("a") Account account);
+
+```
+
+
+
+映射文件：
+
+```xml
+<insert id="insertOne3">
+        insert into salary values (null, #{s.name}, #{a.money})
+    </insert>
+```
 
 
 

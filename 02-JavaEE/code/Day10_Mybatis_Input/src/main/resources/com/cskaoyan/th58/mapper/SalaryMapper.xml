@@ -14,4 +14,21 @@
     <select id="selectOneById2" parameterType="int" resultType="com.cskaoyan.th58.bean.Salary">
         select * from salary where id = #{id}
     </select>
+
+    <select id="selectByNameAndSalary" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where name = #{name} and salary = #{salary}
+    </select>
+
+
+    <insert id="insertOne" parameterType="com.cskaoyan.th58.bean.Salary">
+        insert into salary values (null, #{name}, #{salary});
+    </insert>
+
+    <insert id="insertOne2" parameterType="com.cskaoyan.th58.bean.Salary">
+        insert into salary values (null, #{s.name}, #{s.salary})
+    </insert>
+
+    <insert id="insertOne3">
+        insert into salary values (null, #{s.name}, #{a.money})
+    </insert>
 </mapper>
