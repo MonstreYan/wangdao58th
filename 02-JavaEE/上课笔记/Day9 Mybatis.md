@@ -399,7 +399,199 @@ public class MybatisDemo3 {
 
 
 
+## 增删改查及转账案例
+
+### CRUD
+
+Mapper接口
+
+```java
+public interface SalaryMapper {
+
+    Salary selectOne(Integer id);
+
+    List<Salary> selectAll();
+
+    Integer insertOne(Salary salary);
+
+    Integer updateByPrimaryKey(Salary salary);
+
+    Integer deleteByPrimaryKey(Integer id);
+}
+```
+
+mapper.xml映射文件
+
+```xml
+<mapper namespace="com.cskaoyan.th58.mapper.SalaryMapper">
+    <select id="selectOne" parameterType="java.lang.Integer" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where id = #{id}
+    </select>
+
+    <select id="selectAll" resultType="com.cskaoyan.th58.bean.Salary">
+      select * from salary
+    </select>
+
+  <insert id="insertOne" parameterType="com.cskaoyan.th58.bean.Salary">
+    insert into salary values (null, #{name}, #{salary})
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.cskaoyan.th58.bean.Salary">
+    update salary set name = #{name}, salary = #{salary} where id = #{id}
+  </update>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from salary where id = #{id}
+  </delete>
+
+</mapper>
+```
+
+![image-20240423150630171](assets/image-20240423150630171.png)
+
+单元测试：
+
+```java
+public class CRUDTest {
+
+    @Test
+    public void testQuery(){
+        //获取操作数据库的一个连接
+        SqlSession session = MybatisUtils.getSession();
+        //程序运行期间动态地产生一个mapper实例对象，该对象内部封装了对应的sql语句，我们可以直接使用对象的方法来进行操作
+        SalaryMapper salaryMapper = session.getMapper(SalaryMapper.class);
+        Salary salary = salaryMapper.selectOne(2);
+        System.out.println(salary);
+        session.commit();
+        session.close();
+    }
+
+
+    @Test
+    public void testQuery2(){
+        //获取操作数据库的一个连接
+        SqlSession session = MybatisUtils.getSession();
+        //程序运行期间动态地产生一个mapper实例对象，该对象内部封装了对应的sql语句，我们可以直接使用对象的方法来进行操作
+        SalaryMapper salaryMapper = session.getMapper(SalaryMapper.class);
+        List<Salary> salaries = salaryMapper.selectAll();
+        for (Salary salary : salaries) {
+            System.out.println(salary);
+        }
+        session.commit();
+        session.close();
+    }
+
+
+    @Test
+    public void testInsert(){
+        SqlSession session = MybatisUtils.getSession();
+        SalaryMapper salaryMapper = session.getMapper(SalaryMapper.class);
+        Salary salary = new Salary();
+        salary.setName("空灵");
+        salary.setSalary(12000.0);
+        Integer rows = salaryMapper.insertOne(salary);
+        Assert.assertEquals(1,rows.longValue());
+        //增删改一定得记得提交
+        session.commit();
+        //无论查询还是增删改都必须得close
+        session.close();
+    }
+
+    @Test
+    public void testUpdate(){
+        SqlSession session = MybatisUtils.getSession();
+        SalaryMapper salaryMapper = session.getMapper(SalaryMapper.class);
+        Salary salary = new Salary();
+        salary.setId(7);
+        salary.setName("kongling");
+        salary.setSalary(15000.0);
+        Integer rows = salaryMapper.updateByPrimaryKey(salary);
+        Assert.assertEquals(1, rows.longValue());
+        session.commit();
+        session.close();
+    }
+
+    @Test
+    public void testDelete(){
+        SqlSession session = MybatisUtils.getSession();
+        SalaryMapper salaryMapper = session.getMapper(SalaryMapper.class);
+        Integer rows = salaryMapper.deleteByPrimaryKey(2);
+        Assert.assertEquals(1, rows.longValue());
+        session.commit();
+        session.close();
+    }
+}
+```
+
+### 转账
+
+接口文件
+
+```java
+public interface AccountMapper {
+
+
+    void updateMoneyByName(Account account);
+}
+```
 
 
 
+xml映射文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.AccountMapper">
+
+  <update id="updateMoneyByName" parameterType="com.cskaoyan.th58.bean.Account">
+    update account set money = money - #{money} where name = #{name}
+  </update>
+</mapper>
+```
+
+转账代码：
+
+```java
+public class TransaferTest {
+
+
+    @Test
+    public void testTransfer(){
+        SqlSession session = MybatisUtils.getSession();
+        AccountMapper mapper = session.getMapper(AccountMapper.class);
+        //此时就不需要再去开启事务之类的操作了，因为sqlSession封装的connection默认就是不会自动提交事务
+        Account fromAccount = new Account();
+        fromAccount.setName("boss");
+        fromAccount.setMoney(12000.0);
+
+        Account toAccount = new Account();
+        toAccount.setName("zhangsan");
+        toAccount.setMoney(-12000.0);
+
+        try {
+            mapper.updateMoneyByName(fromAccount);
+            int i = 1 / 0;
+            mapper.updateMoneyByName(toAccount);
+            //session的commit其实就是对于jdbc的commit的封装
+            session.commit();
+        }catch (Exception e){
+            e.printStackTrace();
+            session.rollback();
+        }finally {
+            session.close();
+        }
+    }
+}
+```
+
+
+
+## 事务解决方案
+
+一共有三种，但是建议使用的时候还是使用我们之前的课程中演示的方式
+
+session.commit()这种方式。
 
