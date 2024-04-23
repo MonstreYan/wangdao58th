@@ -595,3 +595,295 @@ public class TransaferTest {
 
 session.commit()这种方式。
 
+
+
+## Mybatis配置
+
+
+
+### Properties(熟悉)
+
+如果你习惯于在properties配置文件中去编写连接信息，那么使用下面的这种方式；如果不习惯这种方式，直接忽略即可。
+
+```properties
+jdbc.driver=com.mysql.cj.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/tx?characterEncoding=utf-8&useSSL=false
+jdbc.username=root
+jdbc.password=123456
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+  <!--引入一个外部的配置文件,会读取位于classpath目录下的jdbc.properties文件-->
+  <properties resource="jdbc.properties"/>
+  
+  
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="com/cskaoyan/th58/mapper/SalaryMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+![image-20240423155449525](assets/image-20240423155449525.png)
+
+
+
+### settings(掌握)
+
+settings配置信息，非常非常的多， 后续陆续给大家介绍；其中有一个关于日志的配置，非常非常非常有用。建议一定要开启。
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+  <!--引入一个外部的配置文件,会读取位于classpath目录下的jdbc.properties文件-->
+  <properties resource="jdbc.properties"/>
+  
+  <settings>
+      <!--建议大家把日志的配置信息写入到你的模板文件中；打印mybatis执行sql时的情形；对于开发阶段非常有帮助-->
+      <setting name="logImpl" value="STDOUT_LOGGING"/>
+  </settings>
+    
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="com/cskaoyan/th58/mapper/SalaryMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+
+
+### typeAlias(了解)
+
+即给类取别名，一般情况下，我们是不建议大家在开发过程中使用的。但是mybatis内部有使用到别名，我们在填写对应的参数类型时，其实可以输入别名。比如常见的数据类型Integer、String，因为mybatis内部设置了别名机制，所以我们只需要写非常简单的字符比如int、string即可。
+
+![image-20240423160207980](assets/image-20240423160207980.png)
+
+![image-20240423160236156](assets/image-20240423160236156.png)
+
+
+
+
+
+比如mybatis内部配置了Integer的别名,那么我们在使用的时候，直接去简写，写别名即可
+
+```xml
+<delete id="deleteByPrimaryKey" parameterType="int">
+        delete from salary where id = #{id}
+    </delete>
+```
+
+**关于详细的别名映射表，大家可以参考预习资料中的笔记**
+
+
+
+### environments(了解)
+
+是可以进行配置不同的环境，比如可以配置开发环境、测试环境、生产环境。使用的时候，直接进行切换即可。
+
+如下所示：分别配置了三个环境，开发时，选择development；测试的时候切换为test；部署上线之后，切换为prod。只需要去更改default的值便可以进行切换。
+
+按理来说，其实挺有用的，但是后续mybatis会整合spring框架来一起使用。后面会有其他的配置文件使用，所以这部分内容仅作为一个了解的部分即可。但是这里面涉及到的理想、理念可以学习一下。
+
+```xml
+<environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+
+        <environment id="test">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+
+        <environment id="prod">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+```
+
+
+
+### mappers(掌握)
+
+在mybatis主配置文件中去包含mapper映射文件。
+
+如果mapper映射文件只有几个，那么使用前面的方式去开发的话还是可以接受的，但是如果mapper映射文件非常多的话，那么会非常痛苦。
+
+如下所示，如果mapper映射文件非常多的话，那么建议设置一个包名，mybatis统一扫描一整个包里面的mapper映射文件。
+
+```xml
+<mappers>
+        <package name="com.cskaoyan.th58.mapper"/>
+    </mappers>
+```
+
+
+
+
+
+如果文件比较少的话，那么写成下面的这种方式也是ok的：
+
+```xml
+<mappers>
+        <mapper resource="com/cskaoyan/th58/mapper/SalaryMapper.xml"/>
+    </mappers>
+```
+
+
+
+## 输入映射
+
+其实就是指的是参数的处理匹配过程。在mapper接口中如何定义一个形参变量，那么它是如何和mapper映射文件里面的占位符关联在一起的呢？
+
+### 一个参数(非对象)
+
+比如可以是整数、字符串等类型。
+
+如果当前的形参只有一个的情况下，mapper映射文件中#{}里面的值其实可以：
+
+1.写任意的值，但是写任意值可读性会比较差
+
+2.一般情况下，我们就建议和形参的变量名称保持一致即可。
+
+3.设置一个@Param("名称")，mapper接口中，那么我们需要和注解里面的名称保持一致
+
+Mapper接口
+
+```java
+public interface SalaryMapper {
+
+    Salary selectOneById(Integer id);
+
+    Salary selectOneByName(String name);
+}
+```
+
+mapper映射文件,注意此时id = 后面的值
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.SalaryMapper">
+    <select id="selectOneById" parameterType="int" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where id = #{amaoagou}
+    </select>
+
+  <select id="selectOneByName" parameterType="string" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where name = #{name}
+  </select>
+</mapper>
+```
+
+
+
+> 说明：#{}可以理解为是mybatis里面相对固定的一个写法，表示的是取值
+>
+> 还需要注意一点的是，在很多配置文件中，叫做${}写法
+
+
+
+设置注解：
+
+```java
+public interface SalaryMapper {
+
+    Salary selectOneById(Integer id);
+
+    Salary selectOneByName(String name);
+
+
+    Salary selectOneById2(@Param("id") Integer param);
+}
+```
+
+注意：selectOneById2方法的#{}里面的值必须是id，因为注解设置的值是id，二者必须要求保持一致。
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.SalaryMapper">
+    <select id="selectOneById" parameterType="int" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where id = #{amaoagou}
+    </select>
+
+  <select id="selectOneByName" parameterType="string" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where name = #{name}
+  </select>
+
+    <select id="selectOneById2" parameterType="int" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where id = #{id}
+    </select>
+</mapper>
+```
+
+总结：一个参数的情况下，在没有设置注解的情况下，可以写任意值，但是建议和形参保持一致；如果设置了注解，那么必须要求和注解的值一模一样。
+
+
+
+> 注解回顾
+>
+> 注解可以有功能，也可以没有功能，完全取决于我们有没有去编写代码去处理该注解里面的内容。
+>
+> 注解可以设置元注解信息，比如设置改注解的生命周期：是在源码中生效、在class文件中生效，在运行时也生效
+>
+> 也可以设置编写的位置，比如可以设置在类的头上，也可以在方法的头上
+>
+> 
+
+
+
+### 多个参数
+
+
+

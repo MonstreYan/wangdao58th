@@ -7,7 +7,15 @@
   <!--引入一个外部的配置文件,会读取位于classpath目录下的jdbc.properties文件-->
   <properties resource="jdbc.properties"/>
   
-  
+  <settings>
+      <!--建议大家把日志的配置信息写入到你的模板文件中；打印mybatis执行sql时的情形；对于开发阶段非常有帮助-->
+      <setting name="logImpl" value="STDOUT_LOGGING"/>
+  </settings>
+
+    <typeAliases>
+        <typeAlias type="com.cskaoyan.th58.bean.Salary" alias="salary"/>
+    </typeAliases>
+    
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
@@ -18,8 +26,32 @@
                 <property name="password" value="${jdbc.password}"/>
             </dataSource>
         </environment>
+
+        <environment id="test">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+
+        <environment id="prod">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
     </environments>
+
     <mappers>
-        <mapper resource=""/>
+        <package name="com.cskaoyan.th58.mapper"/>
     </mappers>
+    <!--<mappers>
+        <mapper resource="com/cskaoyan/th58/mapper/SalaryMapper.xml"/>
+    </mappers>-->
 </configuration>
