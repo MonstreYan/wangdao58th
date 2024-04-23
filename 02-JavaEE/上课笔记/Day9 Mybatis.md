@@ -156,7 +156,104 @@ public class MockMybatis {
 }
 ```
 
+## Mybatis入门案例
+
+官方网站：https://mybatis.org/mybatis-3/zh_CN/index.html
+
+
+
+1.导入依赖
+
+```xml
+<dependencies>
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.5.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+```
+
+2.准备mybatis的主配置文件(xml文件)
+
+> 提一句：后面可能会经常需要创建mybatis的项目，考虑到配置文件不会写，建议大家把xml配置文件写成一个模板，后续去修改模板即可。
+>
+> File-settings-Editior-File and code templates
+>
+> ![image-20240423102126707](assets/image-20240423102126707.png)
 
 
 
 
+
+3.准备mapper映射文件(xml文件,作用就是用来去映射sql语句的)
+
+![image-20240423103014217](assets/image-20240423103014217.png)
+
+随后我们需要去编写mapper.xml文件，那么我们建议再resources目录下新建com/cskaoyan/th58/mapper目录，将mapper映射文件放置在该处(特别需要注意一点的是：在resources目录下不可以用com.cskaoyan.th58来创建多级目录)，也就是我们要求大家mapper映射文件所在的目录要和代码的包目录名称一致
+
+![image-20240423103423449](assets/image-20240423103423449.png)
+
+随后需要再mybatis的主配置文件中去注册当前mapper映射文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/tx?characterEncoding=utf-8&amp;useSSL=false"/>
+                <property name="username" value="root"/>
+                <property name="password" value="123456"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="com/cskaoyan/th58/mapper/SalaryMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+
+
+4.编写mapper映射文件里面的内容
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.SalaryMapper">
+    <select id="selectOne" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where id = #{id}
+    </select>
+</mapper>
+```
+
+
+
+5.编写代码来处理
+
+
+
+## Mybatis原理
+
+![image-20240423101249508](assets/image-20240423101249508.png)
+
+1.对于Mybatis来说，其核心组件是SqlSessionFactory，它是一切功能的前提。
+
+2.SqlSessionFactory翻译可以翻译成为SqlSession的工厂，那么顾名思义就是批量生产SqlSession的地方。SqlSession又是什么东西呢？sql的会话，你可以理解为就是之前的一个一个的连接。
+
+3.SqlSessionFactory需要借助于SqlSessionFactoryBuilder来获取；SqlSessionFactoryBuilder可以通过读取xml文件或者读取Configuration配置类的方式来获取。

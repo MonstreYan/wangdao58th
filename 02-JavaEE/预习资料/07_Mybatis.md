@@ -765,18 +765,6 @@ SqlSession session = sqlSessionFactory.openSession(true);
 >
 >2, ObjectFactory: MyBatis 使用一个对象工厂实例来完成实例化工作。 默认的对象工厂要么通过默认无参构造方法，要么通过有参数的构造方法实例化对象。如果想覆盖对象工厂的默认行为，可以通过创建自己的对象工厂来实现。(不要使用)
 
-
-
-后续，在拿数据库中的bean中，尽量用包装类。这样我们才能知道，到底是默认值还是数据库中为空。
-
-class User{
-
-int id;
-
-Integer id;
-
-}
-
 ## environments
 
 >environments: 可以配置成适应多种环境.比如开发环境、测试环境和生产环境等可能需要有不同的配置.
