@@ -6,4 +6,20 @@
     <select id="selectOne" resultType="com.cskaoyan.th58.bean.Salary">
         select * from salary where id = #{id}
     </select>
+
+    <select id="selectAll" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary
+    </select>
+
+    <insert id="insertOne" parameterType="java.lang.String">
+        insert into salary set name = #{name}
+    </insert>
+
+    <update id="updateOne" parameterType="java.lang.String">
+        update salary set name = #{name}
+    </update>
+
+    <delete id="deleteOne" parameterType="java.lang.Integer">
+        delete from salary where id = #{id}
+    </delete>
 </mapper>

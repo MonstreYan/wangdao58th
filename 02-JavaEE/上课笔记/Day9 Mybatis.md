@@ -156,13 +156,13 @@ public class MockMybatis {
 }
 ```
 
-## Mybatis入门案例
+## Mybatis入门案例(熟悉)
 
 官方网站：https://mybatis.org/mybatis-3/zh_CN/index.html
 
 
 
-1.导入依赖
+**1.导入依赖**
 
 ```xml
 <dependencies>
@@ -181,7 +181,7 @@ public class MockMybatis {
     </dependencies>
 ```
 
-2.准备mybatis的主配置文件(xml文件)
+**2.准备mybatis的主配置文件(xml文件)**
 
 > 提一句：后面可能会经常需要创建mybatis的项目，考虑到配置文件不会写，建议大家把xml配置文件写成一个模板，后续去修改模板即可。
 >
@@ -193,7 +193,7 @@ public class MockMybatis {
 
 
 
-3.准备mapper映射文件(xml文件,作用就是用来去映射sql语句的)
+**3.准备mapper映射文件(xml文件,作用就是用来去映射sql语句的)**
 
 ![image-20240423103014217](assets/image-20240423103014217.png)
 
@@ -228,7 +228,7 @@ public class MockMybatis {
 
 
 
-4.编写mapper映射文件里面的内容
+**4.编写mapper映射文件里面的内容**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -244,16 +244,162 @@ public class MockMybatis {
 
 
 
-5.编写代码来处理
+**5.编写代码来处理**
+
+```java
+public class MybatisDemo1 {
+
+    public static void main(String[] args) {
+
+        //获取SqlSessionFactory
+        //mybatis.xml文件的输入流
+        //获取该文件的输入流，可以使用我们昨天介绍的classloader.getResourceAsStream也可以使用今天介绍的
+        InputStream inputStream = MybatisDemo1.class.getClassLoader().getResourceAsStream("mybatis.xml");
+//        InputStream inputStream = Resources.getResourceAsStream("mybatis.xml");
+        SqlSessionFactory sessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        SqlSession sqlSession = sessionFactory.openSession();
+        //此处不需要去写sql语句，而是直接去写sql语句对应的编号(namespace + id)
+        Salary salary = sqlSession.selectOne("com.cskaoyan.th58.mapper.SalaryMapper.selectOne", 1);
+        System.out.println(salary);
+        //查询的时候可以不用commit也可以，但是增晒改的时候一定得记得commit
+        //下面两行代码就可以理解为是对于jdbc的进一步封装
+        //对于connection.commit()封装
+        sqlSession.commit();
+        //对于connection、preparedStatement、ResultSet.close的封装
+        sqlSession.close();
+    }
+}
+```
 
 
 
 ## Mybatis原理
 
-![image-20240423101249508](assets/image-20240423101249508.png)
+![image-20240423110834547](assets/image-20240423110834547.png)
 
 1.对于Mybatis来说，其核心组件是SqlSessionFactory，它是一切功能的前提。
 
 2.SqlSessionFactory翻译可以翻译成为SqlSession的工厂，那么顾名思义就是批量生产SqlSession的地方。SqlSession又是什么东西呢？sql的会话，你可以理解为就是之前的一个一个的连接。
 
 3.SqlSessionFactory需要借助于SqlSessionFactoryBuilder来获取；SqlSessionFactoryBuilder可以通过读取xml文件或者读取Configuration配置类的方式来获取。
+
+
+
+对于mybatis来说，核心组件是SqlSessionFactory，SqlSessionFactory可以由SqlSessionFactoryBuilder通过去读取mybatis.xml主配置文件来创建，读取主配置文件时，也会进一步去扫描读取mapper映射文件，可以在内部形成那么namespace + id和sql语句的一个映射关系。后续我们利用SqlSessionFactory创建出SqlSession时，利用SqlSession来操作sql语句时，输入对应的编号，那么便可以对应着这条sql语句，便可以执行这条sql语句。
+
+
+
+## 对象的作用域及生命周期
+
+SqlSessionFactoryBuilder：使用过后就可以直接丢弃了，不会再使用了。
+
+SqlSessionFactory：SqlSessionFactory 一旦被创建就应该在应用的运行期间一直存在，没有任何理由丢弃它或重新创建另一个实例。
+
+SqlSession：每个线程都应该有它自己的 SqlSession 实例。SqlSession 的实例不是线程安全的，因此是不能被共享的，所以它的最佳的作用域是请求或方法作用域。 绝对不能将 SqlSession 实例的引用放在一个类的静态域，甚至一个类的实例变量也不行。简而言之，一句话，**那就是sqlSession只可以在局部变量中使用，绝对不能够去写静态成员变量或者成员变量**。
+
+受上述启发，我们可以编写一个工具类：
+
+```java
+public class MybatisUtils {
+
+    private static SqlSessionFactory factory;
+
+    static {
+        InputStream inputStream = MybatisUtils.class.getClassLoader().getResourceAsStream("mybatis.xml");
+        factory = new SqlSessionFactoryBuilder().build(inputStream);
+    }
+    
+    public static SqlSession getSqlSession(){
+        return factory.openSession();
+    }
+}
+```
+
+
+
+## 动态代理方式(重点)
+
+在上面的案例中，我们使用mybatis来操作数据库，使用的是sqlSession.selectOne(编号，参数)这种方式来操作数据库。除了使用这种方式之外，还可以使用另外一种方式，那就是程序运行期间，动态地去产生一个代理类对象，通过操作代理类对象的方法来操作数据库。使用动态代理方式，对于后续整合其他框架非常的方便。
+
+在上述案例的基础上，我们只需要做略微改动即可：
+
+1.在前面的SalaryMapper.xml文件中，当前mapper的namespace关联了一个SalaryMapper，那么我们需要做的事情便是在该处创建一个SalaryMapper接口
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.SalaryMapper">
+    <select id="selectOne" resultType="com.cskaoyan.th58.bean.Salary">
+        select * from salary where id = #{id}
+    </select>
+</mapper>
+```
+
+2.需要在SalaryMapper接口中定义方法，方法的名称要求和mapper映射文件里面的id保持相同。方法的返回值类型要求和resultType要求的类型保持一致。参数的类型便是根据具体情况去传递即可。
+
+> 注意：如果我们执行的是查询全部数据，查询得到的是一个Lsit<Salary>，那么在写resultType时，依然是写Salary
+>
+> 如果是增晒改，那么接口中的方法的返回值写什么呢？可以写void或者int，表示的是影响的行数
+>
+> 最终经过编译之后，Mapper接口文件和Mapper映射文件应该在一个地方，如果后续出现异常，需要确认一下，二者是否在一起。并且Mapper接口的名称和mapper映射文件的名称应该是一致的。
+
+```java
+public interface SalaryMapper {
+
+    Salary selectOne(Integer id);
+
+    List<Salary> selectAll();
+    
+    Integer insertOne(String name);
+
+    Integer updateOne(String name);
+
+    Integer deleteOne(Integer id);
+}
+```
+
+3.编写代码
+
+```java
+public class MybatisDemo3 {
+
+    public static void main(String[] args) {
+        //之前封装的一个工具类，每次操作数据库的时候，都要调用一次
+        //这个sqlSession就相当于一个连接connection
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        //使用一种基于动态代理的方式，提供了一个接口；后续mybatis会在程序运行期间，动态地产生一个类对象
+        SalaryMapper salaryMapper = sqlSession.getMapper(SalaryMapper.class);
+        List<Salary> salaries = salaryMapper.selectAll();
+        for (Salary salary : salaries) {
+            System.out.println(salary);
+        }
+
+        Integer rows = salaryMapper.insertOne("阿齐");
+        System.out.println(rows);
+
+        salaryMapper.updateOne("aqi");
+
+        salaryMapper.deleteOne(1);
+
+        sqlSession.commit();
+        sqlSession.close();
+    }
+}
+```
+
+## 动态代理方式的原理
+
+1.程序运行期间，动态地产生一个类对象，该对象需要去实现SalaryMapper接口，那么也就需要实现接口里面的方法。
+
+2.实现接口中的方法，应该如何实现呢？简单来说便是使用jdbc的代码将mapper映射文件里面的sql语句包装起来，根据接口的返回值，返回对应的对象即可
+
+![image-20240423115149589](assets/image-20240423115149589.png)
+
+
+
+
+
+
+
