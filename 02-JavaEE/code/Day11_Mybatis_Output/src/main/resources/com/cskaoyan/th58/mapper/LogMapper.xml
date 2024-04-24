@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.LogMapper">
+
+  <!--定义一个resultMap，用来处理数据库和java类字段不匹配的问题，编号为baseMap1，使用的时候引用它-->
+  <!--当前baseMap处理的对象时Log对象，也就是type的类型-->
+  <resultMap id="baseMap1" type="com.cskaoyan.th58.bean.Log">
+    <!--id列表示的是处理主键的信息 column表示的是在数据库中列的名称；property表示的是在java类对象中的属性名称-->
+    <id column="id" property="id"/>
+    <!--result用来去处理非主键列-->
+    <result column="from_name" property="fromName"/>
+    <result column="to_name" property="toName"/>
+    <result column="money" property="money"/>
+  </resultMap>
+
+    <select id="selectAll" resultType="com.cskaoyan.th58.bean.Log">
+      select id, from_name as fromName, to_name as toName, money from log
+    </select>
+
+  <select id="selectAll2" resultMap="baseMap1">
+    select * from log
+  </select>
+
+  <insert id="insertOne">
+  </insert>
+</mapper>

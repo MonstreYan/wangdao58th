@@ -1104,9 +1104,242 @@ public class UserTest {
 
 ## 输出映射
 
-### 一条结果
+### 一条结果(掌握)
 
 比如查询用户的姓名。
+
+```java
+    String selectNameById(Integer id);
+
+```
+
+
+
+```xml
+ <select id="selectNameById" resultType="string" parameterType="int">
+      select name from user0 where id = #{id}
+    </select>
+```
+
+
+
+### 多条结果(掌握)
+
+```java
+    //查询用户所有的姓名
+    List<String> selectNames();
+
+```
+
+
+
+```xml
+<select id="selectNames" resultType="string">
+        select name from user0
+    </select>
+```
+
+
+
+### 一行数据(掌握)
+
+希望去接收一行数据，最常用的使用方式，是将这一行数据封装到一个对象中。
+
+```java
+
+    //查询一行数据------> 封装到一个对象中
+    User selectById(Integer id);
+
+```
+
+
+
+
+
+```xml
+  <select id="selectById" parameterType="int" resultType="com.cskaoyan.th58.bean.User">
+        select * from user0 where id = #{id}
+    </select>
+```
+
+
+
+### 多行数据(掌握)
+
+```java
+    List<User> selectAll();
+
+```
+
+
+
+```xml
+ <select id="selectAll" resultType="com.cskaoyan.th58.bean.User">
+        select * from user0
+    </select>
+```
+
+
+
+注意：在封装一行数据到一个对象或者多个对象时，如果对象中的属性名称和数据库里面的字段属性名称对应不上，那么可能会无法封装，此时应该怎么办呢？
+
+
+
+数据库中的表：
+
+![image-20240424111016223](assets/image-20240424111016223.png)
+
+
+
+```java
+public interface LogMapper {
+
+    List<Log> selectAll();
+}
+```
+
+```java
+public class Log {
+
+    private Integer id;
+
+    private String fromName;
+
+    private String toName;
+
+    private Double money;
+
+}
+```
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.LogMapper">
+    <select id="selectAll" resultType="com.cskaoyan.th58.bean.Log">
+      select * from log
+    </select>
+</mapper>
+```
+
+![image-20240424111217786](assets/image-20240424111217786.png)
+
+
+
+此时，数据因为字段的名称不同，没法封装成功。为什么呢？如何解决？
+
+封装的时候主要利用反射来进行处理的，如果字段名称匹配不上，那么便无法封装成功；如何解决呢？
+
+1.给列取别名
+
+```xml
+<select id="selectAll" resultType="com.cskaoyan.th58.bean.Log">
+      select id, from_name as fromName, to_name as toName, money from log
+    </select>
+```
+
+2.使用resultMap来进行封装
+
+
+
+### ResultMap(掌握)
+
+处理封装结果集的时候，可以选择resultType或者resultMap；如果数据库里面的字段和java对象里面的属性值是一样的话， 那么区别不是特别的大；但是如果java字段名称和数据库里面的字段名称差异比较大的时候，那么此时除了可以设置别名之外，还可以使用resultMap来进行处理
+
+其实resultMap可以处理的事情，不仅仅还是上述介绍的如此，还可以帮助我们进行关联的查询等操作。
+
+```xml
+    List<Log> selectAll2();
+```
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.LogMapper">
+
+  <!--定义一个resultMap，用来处理数据库和java类字段不匹配的问题，编号为baseMap1，使用的时候引用它-->
+  <!--当前baseMap处理的对象时Log对象，也就是type的类型-->
+  <resultMap id="baseMap1" type="com.cskaoyan.th58.bean.Log">
+    <!--id列表示的是处理主键的信息 column表示的是在数据库中列的名称；property表示的是在java类对象中的属性名称-->
+    <id column="id" property="id"/>
+    <!--result用来去处理非主键列-->
+    <result column="from_name" property="fromName"/>
+    <result column="to_name" property="toName"/>
+    <result column="money" property="money"/>
+  </resultMap>
+
+    <select id="selectAll" resultType="com.cskaoyan.th58.bean.Log">
+      select id, from_name as fromName, to_name as toName, money from log
+    </select>
+
+  <select id="selectAll2" resultMap="baseMap1">
+    select * from log
+  </select>
+</mapper>
+```
+
+
+
+
+
+## 插件介绍
+
+### Lombok
+
+在之前的开发过程中，我们频繁的做一件事情，那就是生成对应类的get和set方法；提供toString。这些步骤虽然有idea帮助我们生成，但是依然非常的繁琐。
+
+之前的课程中，大家有接触过字节码技术，也就是程序运行期间，动态地产生字节码文件数据。lombok其实采用的也是类似的效果。在编译的时候，帮助我们去生成对应的get和set方法、以及toString、无参构造函数等等.....
+
+我们其实只需要去引入一些注解即可完成。
+
+
+
+使用步骤：
+
+1.导包  导入依赖
+
+```xml
+<dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+        </dependency>
+```
+
+
+
+2.在编写的java类对象头上标注对应的注解即可
+
+@Data注解：会帮助我们生成对应的get和set方法，以及重写toString方法
+
+```
+@AllArgsConstructor：生成全参构造函数
+@NoArgsConstructor：生成无参构造函数
+```
+
+
+
+
+
+### MybatisCodeHelperPro
+
+可以帮助我们关联mapper接口和mapper映射文件，可以提供非常好用的提示、补全功能。
+
+File-settings-plugins-
+
+![image-20240424113403286](assets/image-20240424113403286.png)
+
+
+
+
 
 
 

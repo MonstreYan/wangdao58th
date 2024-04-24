@@ -6,4 +6,16 @@
     <select id="selectNameById" resultType="string" parameterType="int">
       select name from user0 where id = #{id}
     </select>
+
+    <select id="selectNames" resultType="string">
+        select name from user0
+    </select>
+
+    <select id="selectById" parameterType="int" resultType="com.cskaoyan.th58.bean.User">
+        select * from user0 where id = #{id}
+    </select>
+
+    <select id="selectAll" resultType="com.cskaoyan.th58.bean.User">
+        select * from user0
+    </select>
 </mapper>
