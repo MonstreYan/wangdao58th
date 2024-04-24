@@ -4,6 +4,9 @@ import com.cskaoyan.th58.bean.Account;
 import com.cskaoyan.th58.bean.Salary;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Map;
+import java.util.Objects;
+
 public interface SalaryMapper {
 
     Salary selectOneById(Integer id);
@@ -23,5 +26,9 @@ public interface SalaryMapper {
 
 
     void insertOne3(@Param("s") Salary salary,@Param("a") Account account);
+
+
+    //map的演示
+    void insertOne4(Map<String, Object> map);
 
 }

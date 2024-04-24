@@ -1005,3 +1005,108 @@ void insertOne(Salary salary);
 
 
 
+### map
+
+map传值，不建议，大家知道可以使用map传值就行了，也不用去练习。
+
+
+
+
+
+### #和$区别(掌握)
+
+#{}:相当于对于preparedStatement的sql语句预填充的封装形式。其实就相当于占位符。可以避免sql注入问题。
+
+${}:相当于statement的拼接。可能会有sql注入的风险的。
+
+使用的时候如何选择呢？
+
+如果我们需要去接收用户输入的数据，可以使用#{}
+
+如果我们不去接收用户输入的数据，开发人员自己去处理，那么可以使用${}
+
+
+
+案例：假如现在有一个电商网站，用户注册的用户表，一共有3张表，业务设定了一个规则，根据用户注册的名字去取哈希值，根据哈希值的结果，进行运算，将数据存储在对应的表中。
+
+接口
+
+```java
+public interface UserMapper {
+
+    //注册
+    void insertUser(@Param("u") User user, @Param("tb_name") String tbName);
+    //登录
+
+    User selectUser(@Param("name") String name,@Param("password") String password,@Param("tb_name") String tbName);
+}
+```
+
+映射文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.UserMapper">
+
+  <insert id="insertUser" parameterType="com.cskaoyan.th58.bean.User">
+    insert into ${tb_name} values (null, #{u.name}, #{u.password})
+  </insert>
+  <select id="selectUser" resultType="com.cskaoyan.th58.bean.User">
+    select * from ${tb_name} where name = #{name} and password = #{password}
+  </select>
+</mapper>
+```
+
+测试代码：
+
+```java
+public class UserTest {
+
+
+    @Test
+    public void testRegister(){
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+        User user = new User();
+        user.setName("zhangsan");
+        user.setPassword("zhangsan123");
+
+        //准备表名
+        int index = user.getName().hashCode() % 3;
+        System.out.println(index);
+        userMapper.insertUser(user, "user" + index);
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+
+    @Test
+    public void testLogin(){
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+        String name = "zhangsan";
+        String password = "zhangsan123";
+
+        int index = name.hashCode() % 3;
+
+        User user = userMapper.selectUser(name, password, "user" + index);
+        sqlSession.commit();
+        sqlSession.close();
+        Assert.assertNotNull(user);
+    }
+}
+```
+
+
+
+## 输出映射
+
+### 一条结果
+
+比如查询用户的姓名。
+
+
+

@@ -5,6 +5,9 @@ import com.cskaoyan.th58.util.MybatisUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class InputTest {
 
     @Test
@@ -71,6 +74,19 @@ public class InputTest {
         Account account = new Account();
         account.setMoney(20000.0);
         salaryMapper.insertOne3(salary, account);
+        sqlSession.commit();
+        sqlSession.close();
+    }
+
+    //map维护起来会非常的艰难，建议大家不要去使用map
+    @Test
+    public void test7(){
+        SqlSession sqlSession = MybatisUtils.getSqlSession();
+        SalaryMapper salaryMapper = sqlSession.getMapper(SalaryMapper.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("username", "admin123");
+        map.put("money", 2000.0);
+        salaryMapper.insertOne4(map);
         sqlSession.commit();
         sqlSession.close();
     }

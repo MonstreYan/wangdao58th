@@ -31,4 +31,8 @@
     <insert id="insertOne3">
         insert into salary values (null, #{s.name}, #{a.money})
     </insert>
+
+    <insert id="insertOne4" parameterType="map">
+        insert into salary values (null, #{username}, #{money})
+    </insert>
 </mapper>
