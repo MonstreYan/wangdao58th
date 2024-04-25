@@ -1823,11 +1823,158 @@ select * from user where id in (1,2,3,4,5);
 
 4.根据user表的编号和user_detail表的userId编号相等， 将user对象和user_detail对象关联在一起
 
+```java
+@Test
+    public void test1(){
+        SqlSession session = MybatisUtils.getSession();
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        UserDetailMapper userDetailMapper = session.getMapper(UserDetailMapper.class);
+        List<Integer> ids = new ArrayList<>();
+        ids.add(1);
+        ids.add(2);
+        ids.add(3);
+        ids.add(4);
+        List<User> userList = userMapper.selectByIds(ids);
+        List<UserDetail> userDetails = userDetailMapper.selectByUserIds(ids);
+        for (User user : userList) {
+            for (UserDetail userDetail : userDetails) {
+                if(userDetail.getUserId().equals(user.getId())){
+                    user.setUserDetail(userDetail);
+                    System.out.println(user);
+                }
+            }
+        }
+        session.commit();
+        session.close();
+    }
+```
+
+
+
+如果希望使用mybatis提供的连接查询的方案，那么必须得使用resultMap来进行封装处理。
+
+#### 分次查询
+
+这种方式的原理其实就是先去查询user表，得到每一条记录之后，取出column=id，id的值，进行第二次查询，将查询到的结果封装成为一个userDetail，并且将这个userDetail和user关联在一起。
+
+```java
+    List<User> selectAll();
+
+```
+
+
+
+```xml
+ <resultMap id="baseMap" type="com.cskaoyan.th58.bean.User">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="email" property="email"/>
+    <result column="password" property="password"/>
+
+    <!--对象里面和数据库里不太一样的地方在于对象中持有了userDetail-->
+    <!--像user和userDetail这种一对一的关系，使用association；如果像Class和Student这种一对多的关系，那么使用collection-->
+    <!--property:表示的是封装的是哪个属性;javaType:指的是property也就是userDetail对应的数据类型；column：将当前数据的id列的值赋值给第二次查询的参数;select:进行第二次查询，需要填写第二次查询的编号（namespace + id）-->
+    <association property="userDetail" javaType="com.cskaoyan.th58.bean.UserDetail" column="id" select="com.cskaoyan.th58.mapper.UserDetailMapper.selectByUserId"/>
+  </resultMap>
+  <select id="selectAll" resultMap="baseMap">
+    select * from user
+  </select>
+```
+
+
+
+#### 连接查询
+
+使用连接查询来封装数据时，**有一个原则：那就是各自认领各自的属性部分**。
+
+uid、name、email、password这四列的值会赋值给user对象；udid、userId、address、pic会被封装到userDetail对象中
+
+后续userDetail对象会进一步赋值给user对象。
+
+```xml
+ <!--这一次我们不去使用mybatis的分次查询，希望进行连接查询，一次全部查询到-->
+  <resultMap id="baseMap2" type="com.cskaoyan.th58.bean.User">
+    <id column="uid" property="id"/>
+    <result column="name" property="name"/>
+    <result column="email" property="email"/>
+    <result column="password" property="password"/>
+    <association property="userDetail" javaType="com.cskaoyan.th58.bean.UserDetail">
+      <id column="udid" property="id"/>
+      <result column="userId" property="userId"/>
+      <result column="address" property="address"/>
+      <result column="pic" property="pic"/>
+    </association>
+  </resultMap>
+  <select id="selectAll2" resultMap="baseMap2">
+    select u.id as uid,u.name,u.email,u.password,ud.id as udid, ud.user_id as userId,ud.address,ud.pic from user u,user_detail ud where u.id = ud.user_id
+  </select>
+```
+
+
+
+![image-20240425161625753](assets/image-20240425161625753.png)
+
+
+
+### 一对多
+
+#### 分次查询
+
+
+
+ClassMapper.xml
+
+```xml
+<resultMap id="baseMap1" type="com.cskaoyan.th58.bean.Clazz">
+    <id column="id" property="id"/>
+    <result column="name" property="className"/>
+    
+    <!--一对多的关系-->
+    <!--property:需要封装的是哪个属性：ofType指的是list里面的泛型类型;column:指的是获取指定列的值，作为第二次查询的参数-->
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.Student" column="id" select="com.cskaoyan.th58.mapper.StudentMapper.selectByClasIds"/>
+  </resultMap>
+  <select id="selectAll" resultMap="baseMap1">
+    select * from class
+  </select>
+```
+
+
+
+StudentMapper.xml
+
+```xml
+<select id="selectByClasIds" resultType="com.cskaoyan.th58.bean.Student">
+        select id,name,age,class_id as classId from student where class_id = #{classId}
+    </select>
+```
 
 
 
 
 
+#### 连接查询
+
+顾名思义就是将两张表的内容呈现在一起，所以列名必须得保障唯一，不能模棱两可。
+
+还是一样的处理策略：前面的两列交给class去认领；后面四列交给student去认领。
+
+![image-20240425164212907](assets/image-20240425164212907.png)
+
+```xml
+<resultMap id="baseMap2" type="com.cskaoyan.th58.bean.Clazz">
+    <id column="cid" property="id"/>
+    <result column="cname" property="className"/>
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.Student">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+      <result column="age" property="age"/>
+      <result column="class_id" property="classId"/>
+    </collection>
+  </resultMap>
+  <select id="selectAll2" resultMap="baseMap2">
+    select c.id as cid,c.name as cname, s.* from class c,student s where c.id = s.class_id
+  </select>
+```
 
 
 

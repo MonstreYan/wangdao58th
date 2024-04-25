@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.ClassMapper">
+  <resultMap id="baseMap1" type="com.cskaoyan.th58.bean.Clazz">
+    <id column="id" property="id"/>
+    <result column="name" property="className"/>
+    
+    <!--一对多的关系-->
+    <!--property:需要封装的是哪个属性：ofType指的是list里面的泛型类型;column:指的是获取指定列的值，作为第二次查询的参数-->
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.Student" column="id" select="com.cskaoyan.th58.mapper.StudentMapper.selectByClasIds"/>
+  </resultMap>
+  <select id="selectAll" resultMap="baseMap1">
+    select * from class
+  </select>
+
+  <resultMap id="baseMap2" type="com.cskaoyan.th58.bean.Clazz">
+    <id column="cid" property="id"/>
+    <result column="cname" property="className"/>
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.Student">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+      <result column="age" property="age"/>
+      <result column="class_id" property="classId"/>
+    </collection>
+  </resultMap>
+  <select id="selectAll2" resultMap="baseMap2">
+    select c.id as cid,c.name as cname, s.* from class c,student s where c.id = s.class_id
+  </select>
+</mapper>

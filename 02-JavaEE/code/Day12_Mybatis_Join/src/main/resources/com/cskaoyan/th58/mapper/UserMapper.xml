@@ -10,4 +10,37 @@
       #{id}
     </foreach>
   </select>
+
+
+  <resultMap id="baseMap" type="com.cskaoyan.th58.bean.User">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="email" property="email"/>
+    <result column="password" property="password"/>
+
+    <!--对象里面和数据库里不太一样的地方在于对象中持有了userDetail-->
+    <!--像user和userDetail这种一对一的关系，使用association；如果像Class和Student这种一对多的关系，那么使用collection-->
+    <!--property:表示的是封装的是哪个属性;javaType:指的是property也就是userDetail对应的数据类型；column：将当前数据的id列的值赋值给第二次查询的参数;select:进行第二次查询，需要填写第二次查询的编号（namespace + id）-->
+    <association property="userDetail" javaType="com.cskaoyan.th58.bean.UserDetail" column="id" select="com.cskaoyan.th58.mapper.UserDetailMapper.selectByUserId"/>
+  </resultMap>
+  <select id="selectAll" resultMap="baseMap">
+    select * from user
+  </select>
+
+  <!--这一次我们不去使用mybatis的分次查询，希望进行连接查询，一次全部查询到-->
+  <resultMap id="baseMap2" type="com.cskaoyan.th58.bean.User">
+    <id column="uid" property="id"/>
+    <result column="name" property="name"/>
+    <result column="email" property="email"/>
+    <result column="password" property="password"/>
+    <association property="userDetail" javaType="com.cskaoyan.th58.bean.UserDetail">
+      <id column="udid" property="id"/>
+      <result column="userId" property="userId"/>
+      <result column="address" property="address"/>
+      <result column="pic" property="pic"/>
+    </association>
+  </resultMap>
+  <select id="selectAll2" resultMap="baseMap2">
+    select u.id as uid,u.name,u.email,u.password,ud.id as udid, ud.user_id as userId,ud.address,ud.pic from user u,user_detail ud where u.id = ud.user_id
+  </select>
 </mapper>

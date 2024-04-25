@@ -9,4 +9,7 @@ public interface UserMapper {
     List<User> selectByIds(List<Integer> ids);
 
 
+    List<User> selectAll();
+
+    List<User> selectAll2();
 }
