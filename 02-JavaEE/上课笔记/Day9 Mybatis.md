@@ -1628,7 +1628,7 @@ trim标签是一个非常好用并且功能强大的标签；我们在mybatis中
 
 
 
-### foreach标签
+### foreach标签(掌握)
 
 如果我们现在有一个需求，我们需要同一张表中插入多条数据，目前我们的处理方式：
 
@@ -1647,6 +1647,16 @@ action += ")";
 
 借助于foreach标签，我们可以一次性将一个list传递给数据库，让数据库去批量处理插入的数据，其实效果相当于之前jdbc中的批处理。
 
+#### list无注解
+
+```java
+    void insertUsers(List<User> users);
+```
+
+
+
+
+
 ```xml
 <insert id="insertUsers" parameterType="com.cskaoyan.th58.bean.User">
     insert into user values
@@ -1661,6 +1671,159 @@ action += ")";
     </foreach>
   </insert>
 ```
+
+#### list有注解
+
+```java
+    void insertUsers2(@Param("us") List<User> users);
+
+```
+
+
+
+```xml
+<insert id="insertUsers2">
+    insert into user values
+    <foreach collection="us" item="u" separator=",">
+      (null, #{u.username}, #{u.phone}, #{u.email}, #{u.password})
+    </foreach>
+  </insert>
+```
+
+
+
+#### 数组
+
+数组如果没有添加注解，那么collection也是写array；如果添加了注解，也是写注解的名称；
+
+```java
+    void insertUsers3(User[] users);
+
+```
+
+```xml
+<insert id="insertUsers3">
+    insert into user values
+    <foreach collection="array" item="u" separator=",">
+      (null, #{u.username}, #{u.phone}, #{u.email}, #{u.password})
+    </foreach>
+  </insert>
+```
+
+
+
+### in查询
+
+select * from user where id in (1,2,3,4,5);
+
+```java
+    List<User> selectIns(List<Integer> ids);
+
+    List<User> selectIns2(List<Integer> ids);
+
+```
+
+
+
+```xml
+<select id="selectIns" resultType="com.cskaoyan.th58.bean.User">
+    select
+    <include refid="base_column"/>
+    from user
+    <!--关于where可以使用where标签，也可以直接写一个where；如果确认后面一定会有条件，那么这两种方式没啥区别-->
+    <where>
+      id in
+      <foreach collection="list" item="id" open="(" close=")" separator=",">
+        #{id}
+      </foreach>
+    </where>
+  </select>
+
+  <select id="selectIns2" resultType="com.cskaoyan.th58.bean.User">
+    select
+    <include refid="base_column"/>
+    from user
+    <!--关于where可以使用where标签，也可以直接写一个where；如果确认后面一定会有条件，那么这两种方式没啥区别-->
+    where
+      id in (
+      <foreach collection="list" item="id" separator=",">
+        #{id}
+      </foreach>
+      )
+  </select>
+```
+
+
+
+### selectKey(熟悉)
+
+在执行某次操作之后，额外再去进行一次查询操作。当前标签的使用场景不多，唯一的一个使用场景便是插入数据之后，获取当前这条数据的主键编号。
+
+**SelectKey表示额外进行一次查询操作；将查询到的结果赋值给当前参数的对应的属性；如下案例所示，会将查询到的结果赋值给user对象的id属性。也就是在执行插入之前，user对象里面的id为null；但是一旦执行完了插入操作，那么id便不再是null。原理便是利用反射给当前对象的id属性进行赋值操作。**
+
+> 千万要注意，直接接收insert方法的返回值，得到的不是主键的值。而是影响的行数。
+
+```java
+    void insertOne(User user);
+
+```
+
+
+
+```xml
+<insert id="insertOne" parameterType="com.cskaoyan.th58.bean.User">
+    <!--order顺序表示的是在当前的这个操作之前执行还是之后去执行;keyProperty:获取到的keyColumn的值之后赋值给当前参数的哪个属性，也就是id属性-->
+
+    insert into user values (null, #{username}, #{phone}, #{email}, #{password})
+
+    <selectKey order="AFTER" keyProperty="id" resultType="int">
+      select last_insert_id();
+    </selectKey>
+  </insert>
+```
+
+
+
+### useGeneratedKeys(掌握)
+
+上述的selectKey虽然非常有用，但是操作起来比较麻烦，mybatis封装了一个简化的形式供开发人员来使用。
+
+也就是说，今后如果我们希望**获取插入的这条数据的主键编号的值**，那么直接使用这种方式即可。
+
+```xml
+<!--下面这个便是对于上述的简化封装，useGeneratedKeys=true表示的是启用selectKey查询主键的功能；keyProperty表示的是查询到的主键的值之后赋值给参数的哪个属性，id属性-->
+  <insert id="insertOne2" useGeneratedKeys="true" keyProperty="id" parameterType="com.cskaoyan.th58.bean.User">
+    insert into user values (null, #{username}, #{phone}, #{email}, #{password})
+  </insert>
+```
+
+
+
+##  连接查询
+
+无论是之前介绍的一对一的关系还是一对多的关系。数据是散列在多张表之中的。但是我们在显示的时候，是希望数据可以合并在一起的。此时意味着我们需要进行多次查询操作。
+
+比如数据库中存在着一张省份表，还有一张城市表
+
+对应的java类应该有一个Province类，还有一个City类，但是在Province类中应该持有一个成员变量叫做List<City>,维护了当前省份和城市之间的关系。意味着我们需要进行多次查询操作。后续我们需要自己去处理，将二者的关系维护好。
+
+但是借助于mybatis给我们提供的下面的功能，我们可以非常轻松地去维护二者之间的关系。
+
+进行连接查询意味着需要关联多张表，那么多个表之间的关系是一对一还是一对多，需要大家先搞清楚的。
+
+### 一对一
+
+如果不借助于mybatis提供的功能，我们自己单独去处理的话，那么应该怎么进行操作？
+
+1.根据条件查询所有的user的信息
+
+2.根据上一步骤的查询，可以得到所有的用户的编号集合
+
+3.根据用户的编号进行，再次到user_detail表中进行查询
+
+4.根据user表的编号和user_detail表的userId编号相等， 将user对象和user_detail对象关联在一起
+
+
 
 
 

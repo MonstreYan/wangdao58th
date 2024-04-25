@@ -97,4 +97,89 @@ public class DynamicSqlTest {
         session.commit();
         session.close();
     }
+
+    @Test
+    public void test9(){
+        SqlSession session = MybatisUtils.getSession();
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        List<User> users = new ArrayList<>();
+        users.add(new User(null, "kongling", "13565478972", "8765432@qq.com", "kongling12323"));
+        users.add(new User(null, "aqi", "237123127362836", "87788282@qq.com", "ajksdjsadjlkklad"));
+        userMapper.insertUsers2(users);
+        session.commit();
+        session.close();
+    }
+
+    @Test
+    public void test10(){
+        SqlSession session = MybatisUtils.getSession();
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        User[] users = new User[2];
+        users[0] = new User(null, "kongling", "13565478972", "8765432@qq.com", "kongling12323");
+        users[1] = new User(null, "aqi", "237123127362836", "87788282@qq.com", "ajksdjsadjlkklad");
+        userMapper.insertUsers3(users);
+        session.commit();
+        session.close();
+    }
+
+    @Test
+    public void test11(){
+        SqlSession session = MybatisUtils.getSession();
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        List<Integer> ids = new ArrayList<>();
+        ids.add(1);
+        ids.add(2);
+        ids.add(3);
+        List<User> userList = userMapper.selectIns(ids);
+        for (User user : userList) {
+            System.out.println(user);
+        }
+        session.commit();
+        session.close();
+    }
+
+    @Test
+    public void test12(){
+        SqlSession session = MybatisUtils.getSession();
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        List<Integer> ids = new ArrayList<>();
+        ids.add(1);
+        ids.add(2);
+        ids.add(3);
+        List<User> userList = userMapper.selectIns2(ids);
+        for (User user : userList) {
+            System.out.println(user);
+        }
+        session.commit();
+        session.close();
+    }
+
+    @Test
+    public void test13(){
+        SqlSession session = MybatisUtils.getSession();
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        //在执行insert操作之前呢，user对象里面的id是null，但是一旦执行了insert操作之后，id便有了值
+        User user = new User(null, "admin123", "1267645669", "876543456@qq.com", "admin123");
+        System.out.println(user.getId());
+        userMapper.insertOne(user);
+        Integer id = user.getId();
+        System.out.println(id);
+        session.commit();
+        session.close();
+    }
+
+
+    @Test
+    public void test14(){
+        SqlSession session = MybatisUtils.getSession();
+        UserMapper userMapper = session.getMapper(UserMapper.class);
+        //在执行insert操作之前呢，user对象里面的id是null，但是一旦执行了insert操作之后，id便有了值
+        User user = new User(null, "admin123", "1267645669", "876543456@qq.com", "admin123");
+        System.out.println(user.getId());
+        userMapper.insertOne2(user);
+        Integer id = user.getId();
+        System.out.println(id);
+        session.commit();
+        session.close();
+    }
 }

@@ -135,4 +135,59 @@
       (null,#{u.username},#{u.phone},#{u.email}, #{i})
     </foreach>
   </insert>
+
+  <insert id="insertUsers2">
+    insert into user values
+    <foreach collection="us" item="u" separator=",">
+      (null, #{u.username}, #{u.phone}, #{u.email}, #{u.password})
+    </foreach>
+  </insert>
+
+  <insert id="insertUsers3">
+    insert into user values
+    <foreach collection="array" item="u" separator=",">
+      (null, #{u.username}, #{u.phone}, #{u.email}, #{u.password})
+    </foreach>
+  </insert>
+
+  <select id="selectIns" resultType="com.cskaoyan.th58.bean.User">
+    select
+    <include refid="base_column"/>
+    from user
+    <!--关于where可以使用where标签，也可以直接写一个where；如果确认后面一定会有条件，那么这两种方式没啥区别-->
+    <where>
+      id in
+      <foreach collection="list" item="id" open="(" close=")" separator=",">
+        #{id}
+      </foreach>
+    </where>
+  </select>
+
+  <select id="selectIns2" resultType="com.cskaoyan.th58.bean.User">
+    select
+    <include refid="base_column"/>
+    from user
+    <!--关于where可以使用where标签，也可以直接写一个where；如果确认后面一定会有条件，那么这两种方式没啥区别-->
+    where
+      id in (
+      <foreach collection="list" item="id" separator=",">
+        #{id}
+      </foreach>
+      )
+  </select>
+
+  <insert id="insertOne" parameterType="com.cskaoyan.th58.bean.User">
+    <!--order顺序表示的是在当前的这个操作之前执行还是之后去执行;keyProperty:获取到的keyColumn的值之后赋值给当前参数的哪个属性，也就是id属性-->
+
+    insert into user values (null, #{username}, #{phone}, #{email}, #{password})
+
+    <selectKey order="AFTER" keyProperty="id" resultType="int">
+      select last_insert_id();
+    </selectKey>
+  </insert>
+
+  <!--下面这个便是对于上述的简化封装，useGeneratedKeys=true表示的是启用selectKey查询主键的功能；keyProperty表示的是查询到的主键的值之后赋值给参数的哪个属性，id属性-->
+  <insert id="insertOne2" useGeneratedKeys="true" keyProperty="id" parameterType="com.cskaoyan.th58.bean.User">
+    insert into user values (null, #{username}, #{phone}, #{email}, #{password})
+  </insert>
 </mapper>

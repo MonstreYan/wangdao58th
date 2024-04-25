@@ -22,4 +22,17 @@ public interface UserMapper {
     void updateUserById3(User user);
 
     void insertUsers(List<User> users);
+
+    void insertUsers2(@Param("us") List<User> users);
+
+    void insertUsers3(User[] users);
+
+    List<User> selectIns(List<Integer> ids);
+
+    List<User> selectIns2(List<Integer> ids);
+
+
+    void insertOne(User user);
+
+    void insertOne2(User user);
 }
