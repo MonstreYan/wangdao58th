@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.TecStuMapper">
+
+    <select id="selectByCourseId" resultType="com.cskaoyan.th58.bean.TecStu">
+        select ts.id,ts.name from tec_stu ts, tec_sele_course tsc where ts.id = tsc.student_id and tsc.course_id = #{courseId}
+    </select>
+</mapper>

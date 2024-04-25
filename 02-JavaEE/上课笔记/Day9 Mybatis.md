@@ -1799,7 +1799,7 @@ select * from user where id in (1,2,3,4,5);
 
 
 
-##  连接查询
+##  连接查询(掌握)
 
 无论是之前介绍的一对一的关系还是一对多的关系。数据是散列在多张表之中的。但是我们在显示的时候，是希望数据可以合并在一起的。此时意味着我们需要进行多次查询操作。
 
@@ -1862,7 +1862,7 @@ select * from user where id in (1,2,3,4,5);
 
 ```
 
-
+UserMapper.xml
 
 ```xml
  <resultMap id="baseMap" type="com.cskaoyan.th58.bean.User">
@@ -1878,6 +1878,16 @@ select * from user where id in (1,2,3,4,5);
   </resultMap>
   <select id="selectAll" resultMap="baseMap">
     select * from user
+  </select>
+```
+
+
+
+UserDetailMapper.xml
+
+```xml
+<select id="selectByUserId" resultType="com.cskaoyan.th58.bean.UserDetail">
+    select id,user_id as userId, address,pic from user_detail where user_id = #{userId}
   </select>
 ```
 
@@ -1973,6 +1983,53 @@ StudentMapper.xml
   </resultMap>
   <select id="selectAll2" resultMap="baseMap2">
     select c.id as cid,c.name as cname, s.* from class c,student s where c.id = s.class_id
+  </select>
+```
+
+
+
+### 多对多
+
+#### 分次查询
+
+TecCourseMapper.xml
+
+```xml
+<resultMap id="baseMap1" type="com.cskaoyan.th58.bean.TecCourse">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.TecStu" column="id" select="com.cskaoyan.th58.mapper.TecStuMapper.selectByCourseId"/>
+  </resultMap>
+  <select id="selectAll" resultMap="baseMap1">
+      select id,name from tec_course
+  </select>
+```
+
+
+
+TecStuMapper.xml
+
+```xml
+   <select id="selectByCourseId" resultType="com.cskaoyan.th58.bean.TecStu">
+        select ts.id,ts.name from tec_stu ts, tec_sele_course tsc where ts.id = tsc.student_id and tsc.course_id = #{courseId}
+    </select>
+```
+
+#### 连接查询
+
+TecCourseMapper.xml
+
+```xml
+<resultMap id="baseMap2" type="com.cskaoyan.th58.bean.TecCourse">
+    <id column="tcid" property="id"/>
+    <result column="tcname" property="name"/>
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.TecStu">
+      <id column="tsid" property="id"/>
+      <result column="tsname" property="name"/>
+    </collection>
+  </resultMap>
+  <select id="selectAll2" resultMap="baseMap2">
+    select tc.id as tcid,tc.name as tcname, ts.id as tsid, ts.name as tsname from tec_course tc,tec_stu ts, tec_sele_course tsc where tc.id = tsc.course_id and ts.id = tsc.student_id
   </select>
 ```
 

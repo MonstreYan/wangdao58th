@@ -1,7 +1,9 @@
 import com.cskaoyan.th58.bean.Clazz;
+import com.cskaoyan.th58.bean.TecCourse;
 import com.cskaoyan.th58.bean.User;
 import com.cskaoyan.th58.bean.UserDetail;
 import com.cskaoyan.th58.mapper.ClassMapper;
+import com.cskaoyan.th58.mapper.TecCourseMapper;
 import com.cskaoyan.th58.mapper.UserDetailMapper;
 import com.cskaoyan.th58.mapper.UserMapper;
 import com.cskaoyan.th58.util.MybatisUtils;
@@ -86,5 +88,33 @@ public class JoinTest {
         }
         session.commit();
         session.close();
+    }
+
+
+    //多对多
+    @Test
+    public void test6(){
+        SqlSession session = MybatisUtils.getSession();
+        TecCourseMapper mapper = session.getMapper(TecCourseMapper.class);
+        List<TecCourse> tecCourses = mapper.selectAll();
+        for (TecCourse tecCours : tecCourses) {
+            System.out.println(tecCours);
+        }
+        session.commit();
+        session.close();
+
+    }
+
+    @Test
+    public void test7(){
+        SqlSession session = MybatisUtils.getSession();
+        TecCourseMapper mapper = session.getMapper(TecCourseMapper.class);
+        List<TecCourse> tecCourses = mapper.selectAll2();
+        for (TecCourse tecCours : tecCourses) {
+            System.out.println(tecCours);
+        }
+        session.commit();
+        session.close();
+
     }
 }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.TecCourseMapper">
+
+    <!--分次查询-->
+  <resultMap id="baseMap1" type="com.cskaoyan.th58.bean.TecCourse">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.TecStu" column="id" select="com.cskaoyan.th58.mapper.TecStuMapper.selectByCourseId"/>
+  </resultMap>
+  <select id="selectAll" resultMap="baseMap1">
+      select id,name from tec_course
+  </select>
+
+  <resultMap id="baseMap2" type="com.cskaoyan.th58.bean.TecCourse">
+    <id column="tcid" property="id"/>
+    <result column="tcname" property="name"/>
+    <collection property="studentList" ofType="com.cskaoyan.th58.bean.TecStu">
+      <id column="tsid" property="id"/>
+      <result column="tsname" property="name"/>
+    </collection>
+  </resultMap>
+  <select id="selectAll2" resultMap="baseMap2">
+    select tc.id as tcid,tc.name as tcname, ts.id as tsid, ts.name as tsname from tec_course tc,tec_stu ts, tec_sele_course tsc where tc.id = tsc.course_id and ts.id = tsc.student_id
+  </select>
+</mapper>
