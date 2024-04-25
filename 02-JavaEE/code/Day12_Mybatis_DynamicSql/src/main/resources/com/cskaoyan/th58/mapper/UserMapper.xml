@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cskaoyan.th58.mapper.UserMapper">
+
+  <select id="selectByCondition" resultType="com.cskaoyan.th58.bean.User">
+    select * from user
+    <where>
+      <!--此处写了一个where标签，不代表最终此处一定会有where，还取决于where标签内部有没有数据，如果为空，最终不会拼接where-->
+      <!--if标签的test里面需要构建一个条件语句，最终要求返回true or false；如果返回的是true，则会在此处拼接上if标签里面的内容-->
+      <!--where标签最终还会帮助我们将前缀、后缀的and 或者or去除-->
+      <!--什么叫前缀、后缀？以什么开头、以什么结尾-->
+      <if test="username != null and username != ''">
+        and username = #{username}
+      </if>
+      <if test="id != null">
+        and id = #{id}
+      </if>
+      <if test="phone != null and phone != ''">
+        and phone = #{phone}
+      </if>
+    </where>
+  </select>
+
+  <select id="selectByCondition2" resultType="com.cskaoyan.th58.bean.User">
+    select * from user
+    <!--choose表示选择的意思；when相当于if...else if....else if....else if;otherwise相当于else-->
+    <where>
+      <choose>
+        <when test="username != null and username != ''">
+          and username = #{username}
+        </when>
+        <when test="phone != null and phone != ''">
+          and phone = #{phone}
+        </when>
+        <otherwise>
+          and email = #{email}
+        </otherwise>
+      </choose>
+    </where>
+  </select>
+</mapper>

@@ -23,6 +23,4 @@
     select * from log
   </select>
 
-  <insert id="insertOne">
-  </insert>
 </mapper>

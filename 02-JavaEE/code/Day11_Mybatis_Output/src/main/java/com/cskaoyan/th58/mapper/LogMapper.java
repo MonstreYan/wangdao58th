@@ -9,8 +9,4 @@ public interface LogMapper {
     List<Log> selectAll();
 
     List<Log> selectAll2();
-
-
-    void insertOne(Log log);
-
 }
