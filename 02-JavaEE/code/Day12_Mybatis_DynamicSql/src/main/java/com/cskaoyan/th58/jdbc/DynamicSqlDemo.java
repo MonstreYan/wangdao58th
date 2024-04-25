@@ -61,7 +61,7 @@ public class DynamicSqlDemo {
             int id1 = resultSet.getInt("id");
             String name = resultSet.getString("username");
             String phone1 = resultSet.getString("phone");
-            User user = new User(id1, name, phone1);
+            User user = new User(id1, name, phone1,null, null);
             System.out.println(user);
         }
     }

@@ -39,5 +39,100 @@
         </otherwise>
       </choose>
     </where>
+    and password = #{password}
   </select>
+
+  <sql id="base_column">
+   id,username,phone,email,password
+  </sql>
+
+  <select id="selectAll" resultType="com.cskaoyan.th58.bean.User">
+    select
+    <!--相当于在此处会展开显示sql标签里面的内容，也就是等价于select id,username,phone,email,password-->
+    <include refid="base_column"/>
+    from user
+  </select>
+
+  <select id="selectByCondition3" parameterType="com.cskaoyan.th58.bean.User" resultType="com.cskaoyan.th58.bean.User">
+    <!--也是同样的需要去构建动态sql语句，其实可以直接使用where搭配着if，但是这个案例中我们不去使用where，我们使用trim自己去处理-->
+    select
+    <include refid="base_column"/>
+    from user
+    <!--prefix:增加指定前缀；suffix：增加指定后缀；prefixOverrides：删除指定前缀；suffixOverrides删除指定后缀-->
+    <!--同样，trim标签里面如果内容为空，那么也不会触发效果-->
+<!--
+    <trim prefix="" suffix="" prefixOverrides="" suffixOverrides=""
+-->
+    <trim prefix="where" prefixOverrides="and|or">
+      <if test="username != null and username != ''">
+        and username = #{username}
+      </if>
+      <if test="id != null">
+        and id = #{id}
+      </if>
+      <if test="phone != null and phone != ''">
+        and phone = #{phone}
+      </if>
+    </trim>
+  </select>
+
+  <!--现在的修改，我们的处理方式是：如果某个属性为null，那么会将该列的数据直接修改为null-->
+  <!--但是在真实的场景下，很多时候，其实我们只是希望去修改有数据的属性；如果对象的属性为null，则表示不去修改它；但是此时是不满足需求的-->
+  <update id="updateUserById">
+    update user set username = #{username}, phone = #{phone}, email = #{email}, password = #{password} where id = #{id}
+  </update>
+
+  <update id="updateUserById2">
+    update user
+    <!--set标签表示的是如果内部的内容不为null，则会在此处拼接一个set关键字 字符；set还会帮助我们删除指定的后缀,-->
+    <set>
+      <!--if标签的语句里面的username指的是列还是指的是对象里面的属性？？？？对象里面的属性-->
+      <!--如果mapper接口的方法添加了对应的注解，那么需要使用注解.属性值的方式来编写-->
+      <if test="u.username != null and u.username != ''">
+         username = #{u.username},
+      </if>
+      <if test="u.phone != null and u.phone != ''">
+        phone = #{u.phone},
+      </if>
+      <if test="u.email != null and u.email != ''">
+        email = #{u.email},
+      </if>
+      <if test="u.password != null and u.password != ''">
+        password = #{u.password},
+      </if>
+    </set>
+    where id = #{u.id}
+  </update>
+
+  <update id="updateUserById3">
+    update user
+    <trim prefix="set" suffixOverrides=",">
+      <if test="username != null and username != ''">
+        username = #{username},
+      </if>
+      <if test="phone != null and phone != ''">
+        phone = #{phone},
+      </if>
+      <if test="email != null and email != ''">
+        email = #{email},
+      </if>
+      <if test="password != null and password != ''">
+        password = #{password},
+      </if>
+    </trim>
+    where id = #{id}
+  </update>
+
+  <insert id="insertUsers" parameterType="com.cskaoyan.th58.bean.User">
+    insert into user values
+    <!--foreach标签表示的是循环处理；collection表示的是一个集合数据；参数都要求从collection中获取-->
+    <!--collection：如何去写？如果是list，那么就写list；如果是数组，那么就写array；如果是其他的可以迭代的类型，那么需要设置一个注解；写注解的名称；那如果传递的是一个list，但是标注了注解呢?也是写注解的名称-->
+    <!--item:就是循环遍历迭代出来的每个元素-->
+    <!--index：索引下表；其实就相当于fori循环中i的功能-->
+    <!--在本次循环和下次循环之间会填充的字符；本次循环和下次循环之间填充的分隔符-->
+    <!--open、close : 循环开始之前添加的字符  循环结束之后添加的字符-->
+    <foreach collection="list" item="u" separator="," index="i">
+      (null,#{u.username},#{u.phone},#{u.email}, #{i})
+    </foreach>
+  </insert>
 </mapper>

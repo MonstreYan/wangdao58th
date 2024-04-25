@@ -1473,7 +1473,7 @@ where标签和if标签本身二者之间并没有什么特殊的关联，但是�
 
 
 
-### choose、when、otherwise
+### choose、when、otherwise(熟悉)
 
 这个标签和java语言中的if.....else if....else if.....else的功能基本是一模一样的
 
@@ -1484,6 +1484,182 @@ where标签和if标签本身二者之间并没有什么特殊的关联，但是�
 ```sql
 alter table user add column email varchar(30);
 alter table user add column password varchar(100);
+```
+
+```xml
+  <select id="selectByCondition2" resultType="com.cskaoyan.th58.bean.User">
+    select * from user
+    <!--choose表示选择的意思；when相当于if...else if....else if....else if;otherwise相当于else-->
+    <where>
+      <choose>
+        <when test="username != null and username != ''">
+          and username = #{username}
+        </when>
+        <when test="phone != null and phone != ''">
+          and phone = #{phone}
+        </when>
+        <otherwise>
+          and email = #{email}
+        </otherwise>
+      </choose>
+    </where>
+    and password = #{password}
+  </select>
+```
+
+
+
+### sql-include(熟悉)
+
+这是两个标签，不是一个标签。一个叫做sql标签，定义一个基础的sql子语句，一个叫做include标签，表示的是会包含哪个sql子语句。一般情况下，用在sql标签中定义一些查询的基本类，查询的标签中去引用这个基本类。
+
+```xml
+  <sql id="base_column">
+   id,username,phone,email,password
+  </sql>
+
+  <select id="selectAll" resultType="com.cskaoyan.th58.bean.User">
+    select
+    <!--相当于在此处会展开显示sql标签里面的内容，也就是等价于select id,username,phone,email,password-->
+    <include refid="base_column"/>
+    from user
+  </select>
+```
+
+
+
+### trim(熟悉)
+
+trim标签是一个非常好用并且功能强大的标签；我们在mybatis中使用的标签其实都是由trim标签定制而来的。
+
+但是一般情况下，我们不会有这样的场景需要大家自己手动去写trim标签；如果在某些特殊的场景下，mybatis提供的标签无法满足我们的需求时，那么我们可以使用trim来自己进行定制。
+
+比如前面介绍的where标签就是使用trim标签定制而来的；后续还会介绍一个set标签也是由trim标签定制而来的。
+
+```xml
+<select id="selectByCondition3" parameterType="com.cskaoyan.th58.bean.User" resultType="com.cskaoyan.th58.bean.User">
+    <!--也是同样的需要去构建动态sql语句，其实可以直接使用where搭配着if，但是这个案例中我们不去使用where，我们使用trim自己去处理-->
+    select
+    <include refid="base_column"/>
+    from user
+    <!--prefix:增加指定前缀；suffix：增加指定后缀；prefixOverrides：删除指定前缀；suffixOverrides删除指定后缀-->
+    <!--同样，trim标签里面如果内容为空，那么也不会触发效果;会先执行原先数据的删除指定前缀之后，才会执行增加前缀-->
+<!--
+    <trim prefix="" suffix="" prefixOverrides="" suffixOverrides=""
+-->
+    <trim prefix="where" prefixOverrides="and|or">
+      <if test="username != null and username != ''">
+        and username = #{username}
+      </if>
+      <if test="id != null">
+        and id = #{id}
+      </if>
+      <if test="phone != null and phone != ''">
+        and phone = #{phone}
+      </if>
+    </trim>
+  </select>
+```
+
+
+
+### set标签(掌握)
+
+```xml
+<!--现在的修改，我们的处理方式是：如果某个属性为null，那么会将该列的数据直接修改为null-->
+  <!--但是在真实的场景下，很多时候，其实我们只是希望去修改有数据的属性；如果对象的属性为null，则表示不去修改它；但是此时是不满足需求的-->
+  <update id="updateUserById">
+    update user set username = #{username}, phone = #{phone}, email = #{email}, password = #{password} where id = #{id}
+  </update>
+```
+
+上述标签是将所有的列全部修改，但是某些场景下，我们只希望去修改有数据的部分列，此时可以选择使用set标签来进行处理。
+
+**set标签其实和where标签非常的类似；会在对应的位置添加一个set关键字 字符，但是也会帮助我们将内部的字符里面的末尾的,删除，也就是删除,后缀。**
+
+```xml
+  <update id="updateUserById2">
+    update user
+    <!--set标签表示的是如果内部的内容不为null，则会在此处拼接一个set关键字 字符；set还会帮助我们删除指定的后缀,-->
+    <set>
+      <!--if标签的语句里面的username指的是列还是指的是对象里面的属性？？？？对象里面的属性-->
+      <!--如果mapper接口的方法添加了对应的注解，那么需要使用注解.属性值的方式来编写-->
+      <if test="u.username != null and u.username != ''">
+         username = #{u.username},
+      </if>
+      <if test="u.phone != null and u.phone != ''">
+        phone = #{u.phone},
+      </if>
+      <if test="u.email != null and u.email != ''">
+        email = #{u.email},
+      </if>
+      <if test="u.password != null and u.password != ''">
+        password = #{u.password},
+      </if>
+    </set>
+    where id = #{u.id}
+  </update>
+```
+
+
+
+需求：如果需要你使用trim标签来定制set标签，应该怎么办？
+
+```xml
+<update id="updateUserById3">
+    update user
+    <trim prefix="set" suffixOverrides=",">
+      <if test="username != null and username != ''">
+        username = #{username},
+      </if>
+      <if test="phone != null and phone != ''">
+        phone = #{phone},
+      </if>
+      <if test="email != null and email != ''">
+        email = #{email},
+      </if>
+      <if test="password != null and password != ''">
+        password = #{password},
+      </if>
+    </trim>
+    where id = #{id}
+  </update>
+```
+
+
+
+### foreach标签
+
+如果我们现在有一个需求，我们需要同一张表中插入多条数据，目前我们的处理方式：
+
+```java
+String action = "";
+//这个操作相当于open
+action += "(";
+for(int i = 0; i < users.size(); i++){
+    //这个u就相当于标签里面的item
+    User u = users.get(i);
+    userMapper.insertOne(u);
+}
+//这个操作相当于close
+action += ")";
+```
+
+借助于foreach标签，我们可以一次性将一个list传递给数据库，让数据库去批量处理插入的数据，其实效果相当于之前jdbc中的批处理。
+
+```xml
+<insert id="insertUsers" parameterType="com.cskaoyan.th58.bean.User">
+    insert into user values
+    <!--foreach标签表示的是循环处理；collection表示的是一个集合数据；参数都要求从collection中获取-->
+    <!--collection：如何去写？如果是list，那么就写list；如果是数组，那么就写array；如果是其他的可以迭代的类型，那么需要设置一个注解；写注解的名称；那如果传递的是一个list，但是标注了注解呢?也是写注解的名称-->
+    <!--item:就是循环遍历迭代出来的每个元素-->
+    <!--index：索引下表；其实就相当于fori循环中i的功能-->
+    <!--在本次循环和下次循环之间会填充的字符；本次循环和下次循环之间填充的分隔符-->
+    <!--open、close : 循环开始之前添加的字符  循环结束之后添加的字符-->
+    <foreach collection="list" item="u" separator="," index="i">
+      (null,#{u.username},#{u.phone},#{u.email}, #{i})
+    </foreach>
+  </insert>
 ```
 
 
