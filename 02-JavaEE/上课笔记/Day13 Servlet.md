@@ -450,9 +450,182 @@ This interface defines methods to initialize a servlet, to service requests, and
 
 从创建到销毁的整个过程：
 
-init：当servlet被创建(实例化，也就是创建一个对象)的时候会被调用。通过日志，我们可以发现，servlet在运行期间只被创建了一个对象出来，众多客户端请求的时候，如果使用成员变量来存储用户的特有信息，那么便会有安全问题。所以针对用户的特有数据， 慎用serlvet的成员变量来存储数据。
+init：当servlet被创建(实例化，也就是创建一个对象)的时候会被调用。通过日志，我们可以发现，servlet在运行期间只被创建了一个对象出来，众多客户端请求的时候，如果使用成员变量来存储用户的特有信息，那么便会有安全问题。所以针对用户的特有数据， 慎用serlvet的成员变量来存储数据。关于init，正常情况下，服务器启动成功是不会被调用的，在客户端第一次访问的时候，会被调用。**但是可以设置一个load-on-startup=非负数，init方法便会随着tomcat的启动而调用，执行时机提前**。
 
-service：客户端的请求都会交给service来处理。tomcat把客户端的请求转换成了方法的一次调用。
+service：客户端的请求都会交给service来处理。tomcat把客户端的请求转换成了方法的一次调用。是被调用最频繁的一个方法。客户端的每次请求都会调用service方法。
 
-destroy：当servlet被销毁的时候，会调用destory来完成销毁工作。
+destroy：当servlet被销毁的时候，会调用destory来完成销毁工作。应用卸载、服务器关闭的时候会调用destroy。
+
+```java
+@WebServlet(value = "/life",loadOnStartup = 1)
+public class LifeCycleServlet extends HttpServlet {
+
+    private String username;
+
+    @Override
+    public void init() throws ServletException {
+        System.out.println("init");
+    }
+
+    //该方法可以看做是service方法
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("service");
+    }
+
+    //一般在继承HttpServlet中，没有必要去重写service方法，如果重写，那么doGet、doPost可能就无法调用
+
+//    @Override
+//    public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
+//
+//    }
+
+
+    @Override
+    public void destroy() {
+        System.out.println("destroy");
+    }
+}
+```
+
+
+
+## Url-pattern注意事项
+
+**问题1：一个Servlet可以配置多个url-pattern吗？可以**
+
+```java
+@WebServlet(value = {"/life","/life2"},loadOnStartup = 1)
+```
+
+
+
+
+
+**问题2：多个serlvet可不可以映射到同一个url-pattern？**
+
+不可以。tomcat便不知道该调用哪个servlet。
+
+```
+	Caused by: java.lang.IllegalArgumentException: 鍚嶄负 [com.cskaoyan.th58.life.LifeCycleServlet]鍜� [com.cskaoyan.th58.life.LifeCycleServlet2] 鐨剆ervlet涓嶈兘鏄犲皠涓轰竴涓猽rl妯″紡(url-pattern) [/life2]
+		at org.apache.tomcat.util.descriptor.web.WebXml.addServletMappingDecoded(WebXml.java:340)
+		at org.apache.tomcat.util.descriptor.web.WebXml.addServletMapping(WebXml.java:333)
+		at org.apache.catalina.startup.ContextConfig.processAnnotationWebServlet(ContextConfig.java:2348)
+		at org.apache.catalina.startup.ContextConfig.processClass(ContextConfig.java:2027)
+		at org.apache.catalina.startup.ContextConfig.processAnnotationsStream(ContextConfig.java:2016)
+		at org.apache.catalina.startup.ContextConfig.processAnnotationsWebResource(ContextConfig.java:1917)
+		at org.apache.catalina.startup.ContextConfig.processAnnotationsWebResource(ContextConfig.java:1911)
+		at org.apache.catalina.startup.ContextConfig.processAnnotationsWebResource(ContextConfig.java:1911)
+		at org.apache.catalina.startup.ContextConfig.processAnnotationsWebResource(ContextConfig.java:1911)
+		at org.apache.catalina.startup.ContextConfig.processAnnotationsWebResource(ContextConfig.java:1911)
+		at org.apache.catalina.startup.ContextConfig.processClasses(ContextConfig.java:1176)
+		at org.apache.catalina.startup.ContextConfig.webConfig(ContextConfig.java:1093)
+		at org.apache.catalina.startup.ContextConfig.configureStart(ContextConfig.java:779)
+		at org.apache.catalina.startup.ContextConfig.lifecycleEvent(ContextConfig.java:299)
+		at org.apache.catalina.util.LifecycleBase.fireLifecycleEvent(LifecycleBase.java:123)
+		at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5130)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:183)
+
+```
+
+
+
+**问题3：url-pattern的合法写法有哪些？**
+
+只有两种写法是合法的。比如是/xxxx，\*.xxxx(x指的是任意字符，\*指的就是需要输入这个字符)
+
+比如：/ss1 合法的
+
+比如：*.html合法的
+
+但是: ss1非法的
+
+排查故障的一个原则：找到自己认识的代码部分。
+
+```
+	Caused by: java.lang.IllegalArgumentException: servlet鏄犲皠涓殑<url pattern>[ss4]鏃犳晥
+		at org.apache.catalina.core.StandardContext.addServletMappingDecoded(StandardContext.java:3211)
+		at org.apache.catalina.core.StandardContext.addServletMappingDecoded(StandardContext.java:3196)
+		at org.apache.catalina.startup.ContextConfig.configureContext(ContextConfig.java:1338)
+		at org.apache.catalina.startup.ContextConfig.webConfig(ContextConfig.java:1115)
+		at org.apache.catalina.startup.ContextConfig.configureStart(ContextConfig.java:779)
+		at org.apache.catalina.startup.ContextConfig.lifecycleEvent(ContextConfig.java:299)
+		at org.apache.catalina.util.LifecycleBase.fireLifecycleEvent(LifecycleBase.java:123)
+		at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5130)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:183)
+
+```
+
+
+
+## Url-pattern优先级
+
+既然前面的案例中，我们提及url-pattern可以写*.xxxx，比如
+
+*.html可以匹配/1.html也可以匹配/2.html
+
+但是如果此时还有一个Servlet的url-pattern叫做/1.html
+
+这个请求究竟交给谁来处理呢？涉及到优先级的问题。
+
+```
+//定义4个servlet，url-pattern分别为： /abc/*    /*     /abc    *.do
+//依次去访问如下的几个请求，最终查看页面中显示的是哪个servlet里面的内容？
+//
+// /abc : /abc被调用了（/*     /abc）
+// /abc/a.do： /abc/*    （/abc/*   /*     *.do）
+// /xxx/a.do:   /*          （/*    *.do）
+```
+
+url-pattern的优先级满足什么规律？
+
+**1./开头的优先级要高于*.xxx**
+
+**2.都是/开头的url-pattern，满足匹配程度越高，优先级越高。**
+
+
+
+## 缺省Servlet(掌握)
+
+前面的课程中，我们提及到url-pattern可以设置*.html，那么当访问/1.html时，究竟访问的是serlvet还是访问的是静态资源页面呢？Servlet。即便此时能够显示出页面的内容，也是由缺省Servlet来处理的。
+
+场景：
+
+项目中配置了两个servlet，一个是\*.html   一个是/\*
+
+随后访问/1.html，究竟显示的是谁的内容？  /*
+
+随后将/\*注释，再次去访问/1.html，显示的是谁的内容呢？  \*.html
+
+进一步将*.html注释，再次去访问/1.html,显示的是谁的内容呢？显示的是页面里面的内容了。
+
+
+
+**实际上，tomcat中，任何一个请求的处理都会交给一个servlet来处理。如果一个请求有多个serlvet可以处理，那么会选择一个优先级最高的来处理；如果没有找到合适的Servlet来处理，那么会交给缺省Servlet来处理，缺省Servlet的主要业务逻辑其实就是将用户的请求资源当做一个静态资源文件去处理解析，查找该文件是否存在，将文件响应出去**。
+
+> 即便没有配置serlvet或者没有找到合适的servlet，也会交给一个servlet来处理，那么该servlet被称之为缺省Serlvet。最低的保障。
+
+**其实，关于缺省Servlet，tomcat中还提供了一个重写机制，只要你的项目中重新实现了一个新的缺省Servlet，那么便会将tomcat提供的缺省Servlet覆盖。最终调用的时候，使用的是自己编写缺省Servlet。如何去重写缺省Servlet呢？只需要配置一个servlet，url-pattern为/即可**。
+
+```java
+@WebServlet("/")
+public class MyDefaultServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //按理来说，缺省servlet应该实现io流的逻辑
+        System.out.println("MyDefaultServlet doGet");
+    }
+}
+```
+
+![image-20240426164157982](assets/image-20240426164157982.png)
+
+
+
+
+
+
+
+
 
