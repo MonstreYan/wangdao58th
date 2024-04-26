@@ -10,4 +10,7 @@ public interface TecCourseMapper {
 
     List<TecCourse> selectAll2();
 
+    //新增的部分
+    List<TecCourse> selectByStuId(Integer stuId);
+
 }

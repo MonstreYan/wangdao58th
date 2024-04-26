@@ -7,4 +7,25 @@
     <select id="selectByCourseId" resultType="com.cskaoyan.th58.bean.TecStu">
         select ts.id,ts.name from tec_stu ts, tec_sele_course tsc where ts.id = tsc.student_id and tsc.course_id = #{courseId}
     </select>
+
+    <resultMap id="baseMap1" type="com.cskaoyan.th58.bean.TecStu">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <collection property="courseList" ofType="com.cskaoyan.th58.bean.TecCourse" column="id" select="com.cskaoyan.th58.mapper.TecCourseMapper.selectByStuId"/>
+    </resultMap>
+    <select id="selectAll" resultMap="baseMap1">
+        select id,name from tec_stu
+    </select>
+
+    <resultMap id="baseMap2" type="com.cskaoyan.th58.bean.TecStu">
+        <id column="tsid" property="id"/>
+        <result column="tsname" property="name"/>
+        <collection property="courseList" ofType="com.cskaoyan.th58.bean.TecCourse">
+            <id column="tcid" property="id"/>
+            <result column="tcname" property="name"/>
+        </collection>
+    </resultMap>
+    <select id="selectAll2" resultMap="baseMap2">
+        select ts.id as tsid,ts.name as tsname,tc.id as tcid, tc.name as tcname from tec_stu ts,tec_course tc,tec_sele_course tsc where tsc.student_id = ts.id and tsc.course_id = tc.id
+    </select>
 </mapper>

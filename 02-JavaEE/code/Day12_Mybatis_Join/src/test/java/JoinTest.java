@@ -1,11 +1,5 @@
-import com.cskaoyan.th58.bean.Clazz;
-import com.cskaoyan.th58.bean.TecCourse;
-import com.cskaoyan.th58.bean.User;
-import com.cskaoyan.th58.bean.UserDetail;
-import com.cskaoyan.th58.mapper.ClassMapper;
-import com.cskaoyan.th58.mapper.TecCourseMapper;
-import com.cskaoyan.th58.mapper.UserDetailMapper;
-import com.cskaoyan.th58.mapper.UserMapper;
+import com.cskaoyan.th58.bean.*;
+import com.cskaoyan.th58.mapper.*;
 import com.cskaoyan.th58.util.MybatisUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.Test;
@@ -116,5 +110,30 @@ public class JoinTest {
         session.commit();
         session.close();
 
+    }
+
+
+    @Test
+    public void test8(){
+        SqlSession session = MybatisUtils.getSession();
+        TecStuMapper tecStuMapper = session.getMapper(TecStuMapper.class);
+        List<TecStu> tecStus = tecStuMapper.selectAll();
+        for (TecStu stus : tecStus) {
+            System.out.println(stus);
+        }
+        session.commit();
+        session.close();
+    }
+
+    @Test
+    public void test9(){
+        SqlSession session = MybatisUtils.getSession();
+        TecStuMapper tecStuMapper = session.getMapper(TecStuMapper.class);
+        List<TecStu> tecStus = tecStuMapper.selectAll2();
+        for (TecStu stus : tecStus) {
+            System.out.println(stus);
+        }
+        session.commit();
+        session.close();
     }
 }

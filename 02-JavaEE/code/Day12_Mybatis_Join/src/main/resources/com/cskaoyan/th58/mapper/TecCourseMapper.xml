@@ -25,4 +25,8 @@
   <select id="selectAll2" resultMap="baseMap2">
     select tc.id as tcid,tc.name as tcname, ts.id as tsid, ts.name as tsname from tec_course tc,tec_stu ts, tec_sele_course tsc where tc.id = tsc.course_id and ts.id = tsc.student_id
   </select>
+
+  <select id="selectByStuId" resultType="com.cskaoyan.th58.bean.TecCourse">
+    select tc.id,tc.name from tec_course tc, tec_sele_course tsc where tc.id = tsc.course_id and tsc.student_id = #{stuId}
+  </select>
 </mapper>
