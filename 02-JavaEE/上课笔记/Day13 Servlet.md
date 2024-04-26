@@ -623,6 +623,94 @@ public class MyDefaultServlet extends HttpServlet {
 
 
 
+## ServletConfig(了解)
+
+比如在下面的这个serlvet中，定义了一些初始化的参数init-param。如果我希望获取这部分数据，可以使用servletConfig来获取。了解即可，使用不多。如果后续看到别人这么去写，知道怎么一回事即可。
+
+```xml
+<servlet>
+        <servlet-name>default</servlet-name>
+        <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+        <init-param>
+            <param-name>debug</param-name>
+            <param-value>0</param-value>
+        </init-param>
+        <init-param>
+            <param-name>listings</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+```
+
+
+
+## ServletContext(掌握)
+
+如果我们有一个需求，希望可以在多个Servlet中进行数据共享，应该怎么办？
+
+可以利用ServletContext对象来进行数据共享。
+
+### context域
+
+利用servletContext对象来进行数据共享。
+
+每个应用的内部有且只有唯一的一个ServletContext对象。该对象的生命周期基本和应用的生命周期保持一致，也就是应用创建该对象被创建；应用即将销毁，该对象被销毁。
+
+该对象内部有一个类似于map的数据结构，其实可以利用该对象内部的map来进行数据共享(就是内存中共享数据的一种方式)。
+
+当前应用下的每个Servlet均持有当前ServletContext对象的引用。所以，我们便可以利用ServletContext对象来进行数据共享。
+
+> 在学习今天的课程之前，我们可以使用数据库来进行数据共享。使用数据库和使用context域进行数据共享的区别在哪？
+>
+> 介质形式不同。数据库是使用硬盘来进行存储而共享；context域是内存中的一个对象，基于内存来进行数据共享。
+>
+> context域其实和后续大家学习的redis非常相似；但是context域的功能相较于redis其实非常简陋，所以后续学完redis之后，基本不会再去使用context域来进行数据共享了，但是context域是属于java ee规范体系里面的内容，需要大家了解。
+
+![image-20240426171309419](assets/image-20240426171309419.png)
+
+```java
+@WebServlet("/ss1")
+public class Servlet1 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //程序运行期间产生了某些数据，希望可以和servlet2进行共享，怎么办？
+        //先获取servletContext对象的引用 getServletContext()怎么来的？来自于父类，继承得到
+        ServletContext servletContext = getServletContext();
+        //往context域里面写入数据 存入数据的时候key=name，取得时候key也是name
+        servletContext.setAttribute("name", "context");
+    }
+}
+```
+
+```java
+@WebServlet("/ss2")
+public class Servlet2 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //需要现持有servletContext对象的引用
+        ServletContext servletContext = getServletContext();
+        //从context域中获取数据  key=name
+        Object name = servletContext.getAttribute("name");
+        System.out.println(name);
+    }
+}
+```
+
+使用场景：
+
+多个页面都要求显示当前商场的商品分类。
+
+第一次查询的时候，从数据库中查询到了之后，后续再次需要该数据的时候，还需要再到数据库查询一次吗？不需要了，直接存在内存中即可。此时便可以使用context域来进行存储。
+
+
+
+
+
+
+
 
 
 
