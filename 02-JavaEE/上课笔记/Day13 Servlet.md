@@ -331,3 +331,128 @@ protected void service(HttpServletRequest req, HttpServletResponse resp)
 
 
 
+## 开发Servlet-使用注解
+
+开发Servlet的步骤可以分为：1.编写代码继承GenericServlet或者继承HttpServlet  2.配置映射关系，其中配置映射关系可以使用web.xml方式，也可以使用注解的方式。
+
+```java
+//@WebServlet(name = "s3", urlPatterns = "/ss3")
+//还可以进一步简化，将name属性去掉，也就是可以不用给name属性赋值
+//@WebServlet(urlPatterns = "/ss3")
+//如果注解内只有一个单一的值，其实默认就是赋值给value的，而value和urlPatterns可以理解为是相互的别名的关系
+@WebServlet("/ss3")
+public class Servlet3 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("doGet");
+    }
+}
+```
+
+> 注解可以发挥功能，也可以完全没有任何功能，全部取决于业务程序有没有编写代码去解析、处理
+>
+> 解析注解需要使用到反射相关的内容。
+>
+> 关于注解这部分的内容，建议大家掌握。后续学习Spring框架，会接触到一个概念，面向注解编程。
+>
+> ```java
+> @Test
+>     public void test(){
+>         //如果我们需要解析注解，那么需要使用反射，而反射需要借助于Class对象
+>         Map<String ,String > map = new HashMap<String ,String >();
+>         try {
+>             String className = "com.cskaoyan.th58.Servlet3";
+>             Class<?> aClass = Class.forName(className);
+>             //查看当前类的头上有没有标注该注解
+>             WebServlet webServlet = aClass.getAnnotation(WebServlet.class);
+>             String[] urls = webServlet.urlPatterns();
+>             String[] value = webServlet.value();
+>             System.out.println(Arrays.toString(urls));
+>             System.out.println(Arrays.toString(value));
+>             map.put(value[0], className);
+>             System.out.println("==============");
+> 
+>             Constructor<?> constructor = aClass.getConstructor();
+>             //创建了一个servlet实例对象
+>             Object o = constructor.newInstance();
+>             Method method = aClass.getMethod("service", ServletRequest.class, ServletResponse.class);
+>             // tomcat：通过反射去调用servlet的service方法
+>             Object invoke = method.invoke(o, null, null);
+>             
+>         } catch (ClassNotFoundException e) {
+>             throw new RuntimeException(e);
+>         } catch (NoSuchMethodException e) {
+>             throw new RuntimeException(e);
+>         } catch (InvocationTargetException e) {
+>             throw new RuntimeException(e);
+>         } catch (InstantiationException e) {
+>             throw new RuntimeException(e);
+>         } catch (IllegalAccessException e) {
+>             throw new RuntimeException(e);
+>         }
+>     }
+> ```
+>
+> 
+
+
+
+## IDEA配置项
+
+open module settings(project stucture):
+
+![image-20240426145511662](assets/image-20240426145511662.png)
+
+![image-20240426145647617](assets/image-20240426145647617.png)
+
+
+
+![image-20240426150131831](assets/image-20240426150131831.png)
+
+特别注意：当前目录不是我们的应用根目录。
+
+![image-20240426150837614](assets/image-20240426150837614.png)
+
+
+
+最终，将这个目录放置在tomcat中进行部署
+
+![image-20240426150923421](assets/image-20240426150923421.png)
+
+## 将SE项目改造成EE项目
+
+1.新建一个常规的maven项目
+
+2.导入servlet的依赖
+
+3.maven的pom.xml文件设置packaging war
+
+4.在src\main目录下新建一个webapp，此时应该会自动标注一个小蓝点
+
+5.新建一个tomcat配置项，配置tomcat，利用tomcat部署war exploded
+
+![image-20240426151610227](assets/image-20240426151610227.png)
+
+![image-20240426151651212](assets/image-20240426151651212.png)![image-20240426151711766](assets/image-20240426151711766.png)
+
+![image-20240426151728679](assets/image-20240426151728679.png)
+
+
+
+## Servlet生命周期
+
+This interface defines methods to initialize a servlet, to service requests, and to remove a servlet from the server. These are known as life-cycle methods and are called in the following sequence:
+
+1. The servlet is constructed, then initialized with the `init` method.
+2. Any calls from clients to the `service` method are handled.
+3. The servlet is taken out of service, then destroyed with the `destroy` method, then garbage collected and finalized.
+
+从创建到销毁的整个过程：
+
+init：当servlet被创建(实例化，也就是创建一个对象)的时候会被调用。通过日志，我们可以发现，servlet在运行期间只被创建了一个对象出来，众多客户端请求的时候，如果使用成员变量来存储用户的特有信息，那么便会有安全问题。所以针对用户的特有数据， 慎用serlvet的成员变量来存储数据。
+
+service：客户端的请求都会交给service来处理。tomcat把客户端的请求转换成了方法的一次调用。
+
+destroy：当servlet被销毁的时候，会调用destory来完成销毁工作。
+
