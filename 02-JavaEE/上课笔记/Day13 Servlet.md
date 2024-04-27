@@ -1,5 +1,19 @@
 # Day13 Servlet
 
+## API
+
+| 方法名称                               | 参数                                      | 返回值                                    | 说明                                                         |
+| -------------------------------------- | ----------------------------------------- | ----------------------------------------- | ------------------------------------------------------------ |
+| getServletContext()                    | -                                         | 当前应用下的ServletContext对象            |                                                              |
+| servletContext.setAttribute(key,value) | 放入context域里面的键值对                 | -                                         | -                                                            |
+| servletContext.getAttribute(key)       | 根据key值从context域里面获取对应的value值 | 返回的键值对中键对应的value值             |                                                              |
+| servletContext.getRealPath(path)       | 传递一个相对于应用根目录的相对路径        | 返回的是该文件的绝对路径                  | 该方法没有搜寻的功能，只是去做了拼接；docBase + path进行拼接。这个方法在jar包中就无法使用了。 |
+| classloader.getResource(path)          | 相对于classpath的相对路径                 | 返回的是位于classpath目录下某个文件的信息 | 对于java ee项目来说，classpath其实就是我们的应用根目录/WEB-INF/classes.依然可以使用当前方法获取位于resources目录下文件的路径。该方法在jar保障中可以继续使用。 |
+|                                        |                                           |                                           |                                                              |
+|                                        |                                           |                                           |                                                              |
+
+> 说明：servletContext.getRealPath("1.txt")-----该方法能否获取位于应用根目录/WEB-INF/1.txt文件的路径呢？不可以，没有搜索的功能，只是做了一个字符串的拼接。
+
 ## 概念
 
 Servlet是什么？为什么要学习Servlet？
@@ -707,9 +721,67 @@ public class Servlet2 extends HttpServlet {
 
 
 
+### 获取绝对路径
+
+```java
+@WebServlet("/path")
+public class GetPathServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //获取位于应用根目录下1.html文件的路径
+        //file相对路径获取到的路径是相对于tomcat的bin目录
+        //为什么相对路径相对的是tomcat的bin目录？file相对路径相对的是用户的工作目录，当前工作目录是tomcat的bin目录
+        //ee项目其实都是没有main方法的，程序究竟是如何运行的呢？jvm是如何启动的呢？
+        //jvm是在tomact的bin目录下开启的；所以工作目录便是tomcat的bin目录；我们写的java ee的代码充其量只是一些代码片段，供tomcat来调用
+        //tomcat + ee代码合在一起  =  完整的java程序
+        //所以，在java ee阶段，绝对不可以使用file相对路径来获取文件的绝对路径
+        File file = new File("1.html");
+        System.out.println(file.getAbsolutePath());
+    }
+}
+
+```
 
 
 
+场景：希望你可以获取位于应用根目录下1.html文件的路径、file、流
+
+```java
+@WebServlet("/path2")
+public class GetPathServlet2 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //应用部署在tomcat服务器中，应用的两个属性分别是什么？应用名，应用的路径（应用的根目录）这两个信息我们是配置在tomcat中的
+        //tomcat能否知晓每个应用的应用根目录的地址？可以。如果tomcat能够将这个路径再次暴露返回给开发人员，那么我们便可以获取应用根目录的路径
+        //后续再自行拼接出文件相对于应用根目录的相对路径即可
+        //希望可以有一种方式，使用代码来获取应用根目录下的文件路径
+        ServletContext servletContext = getServletContext();
+        //输入一个参数：文件相对于应用根目录的一个相对路径；返回一个绝对路径；如果输入的是空字符串，那么返回的便是应用根目录的路径
+        //使用方式一：输入一个空字符串，返回应用根目录路径
+        String docBase = servletContext.getRealPath("");
+        String path = docBase + "/1.html";
+        System.out.println(path);
+
+        //使用方式二：输入一个相对于应用根目录的相对路径，返回该文件的绝对路径
+        String realPath = servletContext.getRealPath("1.html");
+        System.out.println(realPath);
+    }
+}
+```
+
+
+
+
+
+除了使用上述的方式获取文件路径之外，我们之前还介绍过一种方式，叫做使用类加载器来获取文件的路径。
+
+对于java ee项目来说，classpath在哪呢？全限定类最外层的包所在的目录便是classpath。如果该目录不是classpath，那么类绝对不可能被加载到内存中的。
+
+应用根目录/WEB-INF/classes----------classpath：classloader.getResource("")
+
+应用根目录-------------------------serlvetContext.getRealPath("");
 
 
 
