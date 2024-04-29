@@ -25,4 +25,13 @@ public class ParamServlet4 extends HttpServlet {
         String username = req.getParameter("username");
         System.out.println(username);
     }
+
+    //http://localhost:8080/app/param4?username=张三&age=28
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String username = req.getParameter("username");
+        String age = req.getParameter("age");
+        System.out.println(username);
+        System.out.println(age);
+    }
 }
