@@ -1,5 +1,17 @@
 # Day15 ServletResponse
 
+## API
+
+| 方法名称                     | 参数                     | 返回值 | 说明                                                         |
+| ---------------------------- | ------------------------ | ------ | ------------------------------------------------------------ |
+| setStatus(code)              | 状态码                   | -      | 设置响应报文的状态码                                         |
+| setHeader(key,value)         | 响应头键值对             | -      | 利用该方法可以设置响应头的键值对信息                         |
+| getWriter().println(xxx)     | 待写入到响应体里面的数据 | -      | 利用该方法可以往响应体里面写入指定的数据                     |
+| getOutputStream().write(xxx) | 待写入到响应体里面的数据 | -      | 和上面的区别主要在于，本方法一般用于写出二进制数据；而上述方法主要用于写出文本数据 |
+|                              |                          |        |                                                              |
+
+
+
 ## 概念
 
 Defines an object to assist a servlet in sending a response to the client. The servlet container creates a `ServletResponse` object and passes it as an argument to the servlet's `service` method.
@@ -213,9 +225,228 @@ public class DirectServlet extends HttpServlet {
 
 
 
-案例：登录，登录成功之后，跳转到一个页面
+案例：登录，登录成功之后，跳转到一个页面.案例中关于页面跳转的部分可以不用关注，但是其他的业务逻辑梳理要求能够掌握。
+
+```java
+@WebServlet("/login")
+public class LoginServlet extends HttpServlet {
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //登录的业务逻辑：验证用户输入的用户名、密码是否匹配，如果匹配则跳转到一个页面，如果不匹配，不能够跳转
+        //首先得接收用户输入的用户名、密码：使用抓包，抓取；
+        //中文乱码问题？？？？
+        req.setCharacterEncoding("utf-8");
+        resp.setContentType("text/html;charset=utf-8");
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
+        //可以做一些校验工作
+
+        //后续和数据库中的进行比对校验（有精力的同学可以去做）
+        //假设：已经校验通过了   /app/info
+        resp.getWriter().println("登录成功，即将跳转至个人中心页面,如果没有跳转，可以点击链接进行手动跳转<a href='" + req.getContextPath() + "/info" + "'>点击跳转</a>");
+        resp.setHeader("refresh", "3;url=" + req.getContextPath() + "/info");
+    }
+}
+```
 
 
+
+```java
+@WebServlet("/info")
+public class InfoServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.getWriter().println("info");
+    }
+}
+```
+
+
+
+## 下载(了解)
+
+浏览器：对于浏览器来说， 可以打开的文件默认会执行打开操作；无法打开的文件，默认会执行下载操作，这个是无需进行设置的。
+
+这里面提及的下载指的是针对那些浏览器可以打开的文件，可以设置一个下载响应头，让客户端浏览器直接下载该文件而不是打开该文件。
+
+如果我们希望浏览器可以下载某个文件，那么只需要再原先的显示文件的基础上增加一个下载响应头即可。
+
+```java
+@WebServlet("/down")
+public class DownloadServlet4 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //位于resources目录下有一个1.png，希望你可以将该图片响应给客户端 io流
+        //需要有一个输入流、输出流
+        //增加一个下载响应头即可
+        resp.setHeader("Content-Disposition", "attachment;filename=1.png");
+
+        ServletOutputStream outputStream = resp.getOutputStream();
+
+        //从硬盘上面某一处来获取文件的输入流
+        //文件经过部署之后位于classpath目录下
+        ClassLoader classLoader = DownloadServlet4.class.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream("1.png");
+        //写入的长度
+        int length = 0;
+        //往数组里面写入数据
+        byte[] buffer = new byte[1024];
+        while ((length = inputStream.read(buffer)) != -1){
+            outputStream.write(buffer, 0, length);
+        }
+        outputStream.close();
+        inputStream.close();
+    }
+}
+```
+
+导出到excel的功能
+
+
+
+
+
+## 合并多个Servlet的功能(掌握)
+
+比如登录案例，我们目前编写了2个Servlet，其实就是每个请求也了一个Servlet。但是如果一个项目非常大的话，那么我们需要创建很多个Servlet。比如300个。此时我们进行代码维护的时候，就会非常头疼。
+
+
+
+希望可以将部分功能相近代码合并到一起。针对登录、info个人中心都是属于用户模块，可以合并到一个UserSerlvet中。比如商品的发布、修改、查询、删除等都可以写到一个GoodsSerlvet中。
+
+
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <a href="/app/pic/view">查看图片</a>
+    <a href="/app/pic/down">下载图片</a>
+
+    <a href="/app/picture?op=view">查看图片2</a>
+    <a href="/app/picture?op=down">下载图片2</a>
+
+</body>
+</html>
+```
+
+
+
+```java
+@WebServlet("/pic/*")
+public class CombinePicServlet5 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // /app/pic/view  /app/pic/down
+        String requestURI = req.getRequestURI();
+        //把前面的这部分内容替换成一个空字符串
+        String op = requestURI.replace(req.getContextPath() + "/pic/", "");
+        if("view".equals(op)){
+            view(req, resp);
+        }else if("down".equals(op)){
+            down(req, resp);
+        }
+    }
+
+    private void down(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setHeader("Content-Disposition", "attachment;filename=1.png");
+
+        view(req, resp);
+    }
+
+    private void view(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ServletOutputStream outputStream = resp.getOutputStream();
+
+        //从硬盘上面某一处来获取文件的输入流
+        //文件经过部署之后位于classpath目录下
+        ClassLoader classLoader = StreamServlet3.class.getClassLoader();
+        InputStream inputStream = classLoader.getResourceAsStream("1.png");
+        //写入的长度
+        int length = 0;
+        //往数组里面写入数据
+        byte[] buffer = new byte[1024];
+        while ((length = inputStream.read(buffer)) != -1){
+            outputStream.write(buffer, 0, length);
+        }
+        outputStream.close();
+        inputStream.close();
+
+    }
+}
+```
+
+
+
+
+
+针对登录功能，重新设计请求的请求资源如下：
+
+登录： POST /app/user/login
+
+注册：POST /app/user/register
+
+个人中心:GET /app/user/info
+
+注销：GET /app/user/logout
+
+我们只需要设计一个UserServlet即可，url-pattern为/user/*
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form action="/app/user/login" method="post">
+        <input type="text" name="username"><br>
+        <input type="password" name="password"><br>
+        <input type="submit">
+    </form>
+</body>
+</html>
+```
+
+```java
+@WebServlet("/user/*")
+public class UserServlet extends HttpServlet {
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //  /app/user/login
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/user/", "");
+        if("login".equals(op)) {
+            login(req, resp);
+        }
+    }
+
+    private void login(HttpServletRequest req, HttpServletResponse resp) {
+
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/user/", "");
+        if("info".equals(op)) {
+            info(req, resp);
+        }
+    }
+
+    private void info(HttpServletRequest req, HttpServletResponse resp) {
+
+    }
+}
+```
 
 
 
