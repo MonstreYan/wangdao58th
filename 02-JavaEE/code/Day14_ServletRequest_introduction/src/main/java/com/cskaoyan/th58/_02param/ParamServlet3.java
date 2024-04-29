@@ -1,11 +1,14 @@
 package com.cskaoyan.th58._02param;
 
+import org.apache.commons.beanutils.BeanUtils;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -31,14 +34,14 @@ public class ParamServlet3 extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         //把获取到的请求参数的数据封装到一个user对象中
         User user = new User();
-//        Class<? extends User> aClass = user.getClass();
-//        Method method = aClass.getMethod("setUsername", String.class);
-//        method.invoke(user, args);
-        Enumeration<String> parameterNames = req.getParameterNames();
-        while (parameterNames.hasMoreElements()){
-            String paramKey = parameterNames.nextElement();
-            String[] paramValues = req.getParameterValues(paramKey);
-            System.out.println(paramKey + " : " + Arrays.toString(paramValues));
+        //工具类的这个方法就是把第二个参数map里面的键值对封装到第一个参数object对象中
+        try {
+            BeanUtils.populate(user, req.getParameterMap());
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
+        System.out.println(user);
     }
 }

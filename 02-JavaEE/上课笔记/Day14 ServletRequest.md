@@ -1,5 +1,23 @@
 # Day14 ServletRequest
 
+## API
+
+| 方法名称                 | 参数               | 返回值                          | 说明                                                         |
+| ------------------------ | ------------------ | ------------------------------- | ------------------------------------------------------------ |
+| getMethod()              | -                  | 当前请求报文的请求方法          |                                                              |
+| getRequestURI()          | -                  | 请求报文的请求资源部分          |                                                              |
+| getRequestURL()          | -                  | 请求报文的请求资源部分          | 二者的区别在于这个比上面一个多出来一部分访问协议、主机、端口号部分 |
+| getProtocol()            | -                  | 请求报文的版本协议部分          |                                                              |
+| getHeader(name)          | 请求头的名称       | 请求头对应的value值             |                                                              |
+| getHeaderNames()         | -                  | 请求报文中所有请求头的key值集合 |                                                              |
+| getInputStream()         | -                  | 获取的是请求报文的请求体部分    | 一般情况下，如果是key=value&key=value这种类型的数据，是无需开发人员自行去解析请求体；后续进行文件上传时，我们需要自己去处理 |
+| getParameter(name)       | 请求参数的name名称 | 返回的是请求参数对应的value值   | 需要注意的是：该方法适用于key=value&key=value；无论get请求方法参数位于请求行还是post时请求参数位于请求体，只要是这种模式均可以进行处理；无需开发人员自行去处理解析 |
+| getParameterNames()      | -                  | 返回的是请求参数的name集合      |                                                              |
+| getParameterValues(name) | 请求参数的name名称 | 返回的是请求参数对应的value值   | 需要注意的是，和getParameter的区别在于：getParameter只适用于提交了一个参数的情况；如果提交了多个参数，需要使用当前方法。比如id=1&id=2&id=3 |
+| getParameterMap()        | -                  | 返回的是请求参数的键值对形式    |                                                              |
+
+
+
 ## 概念
 
 1.是什么？ServletRequest是一个提供给servlet的关于客户端请求信息的封装对象。Servlet容器也就是tomcat服务器创建了该对象，并且在调用servlet的service方法时，将其传递了进去。ServletRequest其实就是对于客户端请求信息的封装。
@@ -260,6 +278,73 @@ public class ParamServlet3 extends HttpServlet {
         }
     }
 }
+
+```
+
+可以使用一个工具类库来完成数据的封装工作。BeanUtils
+
+```java
+@WebServlet("/param3")
+public class ParamServlet3 extends HttpServlet {
+
+    //使用反射来进行处理的思路：
+
+    /**
+     * 目前有一个请求参数的键值对 username:xxx;password:xxxx;gender:xxxx;course:xxxx;province:xxxxx
+     * 还有一个user对象，里面有对应的成员变量，变量的名称和请求参数的key的值是相同的
+     * 需要做的事情便是利用Class对象，去查找到对应的成员变量或者set方法(set + key首字母大写)，利用反射去赋值，赋什么值呢？请求参数键值对的value值
+     * 成员变量进行赋值：  field.set(obj, args);
+     * set方法进行赋值：  method.invoke(obj, args);
+     */
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //把获取到的请求参数的数据封装到一个user对象中
+        User user = new User();
+        //工具类的这个方法就是把第二个参数map里面的键值对封装到第一个参数object对象中
+        try {
+            BeanUtils.populate(user, req.getParameterMap());
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(user);
+    }
+}
+```
+
+> 
+>
+> debug:调试代码，必须具备的一项技能。
+>
+> 1.选择debug模式，才可以进行调试
+>
+> ![image-20240429101350333](assets/image-20240429101350333.png)
+>
+> 2.需要调试的代码处添加断点
+>
+> ![image-20240429101628480](assets/image-20240429101628480.png)
+
+![image-20240429101809464](assets/image-20240429101809464.png)
+
+## 中文乱码
+
+如果我们使用post请求方式提交了表单数据，如果含有中文，那么服务器解析过后正常情况会有中文乱码问题。
+
+void setCharacterEncoding([String](https://docs.oracle.com/javase/7/docs/api/java/lang/String.html) encoding)：
+
+**Overrides the name of the character encoding used in the body of this request.** This method must be called prior to reading request parameters or reading input using getReader().
+
+重写请求体里面的编码格式；该方法必须要在读取请求参数之前调用才有效
+
+```
+//如果username=空灵乱码了，不可以使用上述的方法去解决。
+GET /app/1.html?username=空灵  HTTP/1.1
+Host:localhost:8080
+....
+...
+...
+
 ```
 
 
