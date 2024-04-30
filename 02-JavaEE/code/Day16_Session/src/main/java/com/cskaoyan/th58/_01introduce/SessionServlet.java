@@ -1,4 +1,4 @@
-package com.cskaoyan.th58;
+package com.cskaoyan.th58._01introduce;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,7 +24,8 @@ public class SessionServlet extends HttpServlet {
         //应该可以看到有一个set-Cookie:JSESSIONID=xxx响应头
         //后续第二次再次访问当前servlet时，或者访问ss2时，还会不会会该响应头呢？不会
         HttpSession session = req.getSession();
-
+        System.out.println(session);
+        System.out.println(session.getId());
         //利用session对象来进行数据共享
         session.setAttribute("username", "kongling");
 

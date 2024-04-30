@@ -1,4 +1,4 @@
-package com.cskaoyan.th58;
+package com.cskaoyan.th58._01introduce;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,6 +20,9 @@ public class SessionServlet2 extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         //利用request对象来获取当前请求相关联的session对象
         HttpSession session = req.getSession();
+
+        System.out.println(session);
+        System.out.println(session.getId());
 
         //利用session对象来进行数据共享
         Object username = session.getAttribute("username");

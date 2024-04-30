@@ -1,5 +1,20 @@
 # Day16 会话技术
 
+## API
+
+| 方法名称                   | 参数                         | 返回值                             | 说明                                                         |
+| -------------------------- | ---------------------------- | ---------------------------------- | ------------------------------------------------------------ |
+| Cookie(name,value)         | Cookie的键值对               | 服务器会创建一个Cookie对象         | 服务器上面的Cookie对象其实只是为了服务器处理Cookie 的数据方便，和客户端上面的Cookie其实并没有本质的联系 |
+| response.addCookie(cookie) | 需要返回给客户端的Cookie数据 | -                                  | 利用该方法，可以将服务器上面的一个Cookie对象里面的数据，以set-Cookie响应头的形式返回给客户端；客户端会随即保存下来 |
+| request.getCookies()       | -                            | 当前请求携带过来的所有的Cookie信息 |                                                              |
+| cookie.setMaxAge(age)      | 单位为秒的时间               |                                    |                                                              |
+| cookie.setPath(path)       | 设置一个路径                 |                                    | 仅当访问指定路径时才会携带cookie                             |
+| cookie.setDomain(domain)   | 域名                         |                                    | 仅当访问当前域名以及子域名时会携带cookie                     |
+| request.getSession()       | -                            | 返回当前请求相关联的session对象    | 看当前请求报文中是否携带了一个有效的Cookie:JSESSIONID=XXX.如果有携带一个有效的编号，那么便可以定位到session对象；如果没有携带，则会创建一个新的session对象 |
+| session.invliadte()        | -                            |                                    | 主动销毁session域里面的数据                                  |
+
+
+
 ## HTTP协议无状态性(掌握)
 
 接下来，通过一个实验案例来展示一下HTTP协议无状态性。
@@ -411,13 +426,17 @@ public class DomainServlet extends HttpServlet {
 
 
 
-### 使用
+### 使用(掌握)
 
 Provides a way to identify a user across more than one page request or visit to a Web site and to store information about that user.
 
 HttpSession可以在多个页面的访问过程中唯一标识一个客户端(因为HTTP协议是无状态性)或者说可以给客户端存储一部分数据。
 
 **getSession()**：当前请求有关联的session对象则返回；如果没有关联的session对象，则创建一个
+
+> 怎么判断当前请求有没有关联的session对象？？？？
+>
+> 就看请求头中有没有携带一个有效的Cookie:JSESSIONID=XXXX
 
 Returns the current session associated with this request, or if the request does not have a session, creates one.
 
@@ -472,13 +491,130 @@ public class SessionServlet2 extends HttpServlet {
 
 
 
-### Session域和Context域、Request域之间区别
+### Session域和Context域、Request域之间区别(掌握)
 
-session域：使用session对象来实现数据共享。但是session对象在整个程序运行期间不是一个对象。而是一个客户端就会对应一个session对象。只要是同一个客户端访问的不同资源，那么均可以使用session对象来进行数据共享。
+session域：使用session对象来实现数据共享。但是session对象在整个程序运行期间不是一个对象。而是一个客户端就会对应一个session对象。只要是同一个客户端访问的不同资源，那么均可以使用session对象来进行数据共享。session域适用于同一个客户端访问不同的资源。
 
-context域：使用serlvetContext对象来进行数据共享。该对象在整个程序的运行期间，有且只有一个实例对象，所以无论是那个客户端，访问的是哪个资源，那么均是访问的是同一个servletContext对象，所以均可以实现数据共享。
+context域：使用serlvetContext对象来进行数据共享。该对象在整个程序的运行期间，有且只有一个实例对象，所以无论是那个客户端，访问的是哪个资源，那么均是访问的是同一个servletContext对象，所以均可以实现数据共享。context域的范围是最广的。
 
 request域：只有转发的时候，是使用的是同一个request对象，所以可以共享request域。
+
+![image-20240430170734989](assets/image-20240430170734989.png)
+
+
+
+### 常见问题(掌握)
+
+1.关闭浏览器，session对象是否会销毁，是否可以访问到session域里面的数据？？？？
+
+对象没有被销毁；无法访问到session域里面的数据了。原因在于关闭浏览器之后，把凭证丢了，下一次访问的时候，不会携带Cookie:JSESSIONID=xxx,所以服务器获取不到原先的session编号，那么也就无法查找到对应的session对象，会重新创建一个新的session对象。
+
+
+
+
+
+2.关闭服务器，session对象是否会销毁，是否可以访问到session域里面的数据？
+
+对象会被销毁，但是数据依然可以访问到。主要在于session在应用即将销毁之前进行了持久化操作、序列化操作。
+
+![image-20240430172036960](assets/image-20240430172036960.png)
+
+
+
+
+
+接下来演示一下：使用tomcat提供的应用管理器来卸载应用，重新部署
+
+1.需要保证本地的tomcat的webapps目录下存在manager应用
+
+2.在本地tomcat的conf/tomat-users.xml文件中进行配置
+
+```xml
+<role rolename="manager-gui"/>
+<user username="tomcat" password="tomcat" roles="manager-gui"/>
+```
+
+
+
+### Session生命周期(熟悉)
+
+session对象的生命周期和session数据的生命周期是不一致的。
+
+对象
+
+​	创建：第一次调用request.getSession()时候
+
+​	销毁：应用卸载、服务器关闭的时候
+
+数据
+
+​	创建：调用session域setAttribute赋值的时候
+
+​	销毁：（对象的销毁不会导致数据的销毁）**session的有效期到达(默认30min有效期)**;**主动调用session.invalidate()**清空session
+
+
+
+### 案例(掌握)
+
+有一个登录页面，用户在页面中输入用户名、密码等信息，跳转到一个个人中心页面，要求在该页面中可以显示出当前登录用户的用户名。同时该页面会有注销按钮，当前用户点击注销按钮时，会退出当前的会话，并且返回登录页面。
+
+```java
+@WebServlet("/user/*")
+public class UserServlet extends HttpServlet {
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //分发，分发到login方法中
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/user/", "");
+        if("login".equals(op)){
+            login(req, resp);
+        }
+    }
+
+    private void login(HttpServletRequest req, HttpServletResponse resp) {
+        //接收用户提交过来的请求参数信息
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
+
+        //需要跳转到info页面，并且还需要和info页面共享用户名信息，所以此时可以使用session域来存储用户的数据
+        HttpSession session = req.getSession();
+        session.setAttribute("username", username);
+
+        resp.setHeader("refresh", "2;url=" + req.getContextPath() + "/user/info");
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/user/", "");
+        if("info".equals(op)){
+            info(req, resp);
+        }else if("logout".equals(op)){
+            logout(req, resp);
+        }
+    }
+
+    private void logout(HttpServletRequest req, HttpServletResponse resp) {
+        //注销逻辑
+        HttpSession session = req.getSession();
+        //调用下面的方法来进行注销
+        session.invalidate();
+        resp.setHeader("refresh", "2;url=" + req.getContextPath() + "/login.html");
+    }
+
+    private void info(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("text/html;charset=utf-8");
+        HttpSession session = req.getSession();
+        Object username = session.getAttribute("username");
+        resp.getWriter().println("welcome:" + username + "<a href='" + req.getContextPath() + "/user/logout" + "'>点击注销</a>");
+    }
+}
+```
+
+
+
+
 
 
 
