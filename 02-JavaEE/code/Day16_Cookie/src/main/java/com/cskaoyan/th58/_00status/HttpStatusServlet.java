@@ -1,4 +1,4 @@
-package com.cskaoyan.th58;
+package com.cskaoyan.th58._00status;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
