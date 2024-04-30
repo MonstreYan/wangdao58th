@@ -7,6 +7,8 @@
 | getMethod()                    | -                  | 当前请求报文的请求方法          |                                                              |
 | getRequestURI()                | -                  | 请求报文的请求资源部分          |                                                              |
 | getRequestURL()                | -                  | 请求报文的请求资源部分          | 二者的区别在于这个比上面一个多出来一部分访问协议、主机、端口号部分 |
+| getServletPath()               | -                  | 请求报文的请求资源部分          | 相较于URI的区别在于，缺少应用名部分；但是该方法有一个小问题，如果servlet的url-pattern中包含*,则解析不了 |
+| getContextPath()               | -                  | 请求报文的请求资源部分          | 获取的是应用名                                               |
 | getProtocol()                  | -                  | 请求报文的版本协议部分          |                                                              |
 | getHeader(name)                | 请求头的名称       | 请求头对应的value值             |                                                              |
 | getHeaderNames()               | -                  | 请求报文中所有请求头的key值集合 |                                                              |

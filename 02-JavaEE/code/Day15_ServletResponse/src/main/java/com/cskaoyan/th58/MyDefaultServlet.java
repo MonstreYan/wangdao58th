@@ -1,10 +1,13 @@
 package com.cskaoyan.th58;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 /**
@@ -12,27 +15,33 @@ import java.io.IOException;
  * @Date 2024/4/29 15:06
  * @Version 1.0
  */
-//@WebServlet("/")
+@WebServlet("/")
 public class MyDefaultServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        //逻辑：根据用户访问的资源不同，查看当前文件是否位于特定的位置
-        //如果在这个位置，则响应出去，返回200状态码
-        //如果文件不存在，则返回404状态码
-        //如何获取当前请求的请求资源？？？？？
-        String requestURI = req.getRequestURI();
-        StringBuffer requestURL = req.getRequestURL();
-        //再补充几个获取请求资源的方法 tips：晚上实现的时候可以参考一下
+        //不能被其他servlet所处理的请求都会交给当前servlet来进行处理
+        //需要做的事情就是识别出用户请求的是哪个资源
+        //  /2.png  /link.html  /3.html
         String servletPath = req.getServletPath();
-        String contextPath = req.getContextPath();
-        //  /app/3.png
-        System.out.println(requestURI);
-        //http://localhost:8080/app/3.png
-        System.out.println(requestURL);
-        //   /3.png    uri去掉应用名之后的部分
-        System.out.println(servletPath);
-        //  /app 应用名  应用路径如何获取呢？servletContext.getRealPath("")
-        System.out.println(contextPath);
+        //确认输入的路径部分对应的硬盘路径
+        String realPath = getServletContext().getRealPath(servletPath);
+        File file = new File(realPath);
+        if(file.exists() && file.isFile()){
+            //文件存在，并且不是目录，、将文件响应出去
+            FileInputStream fileInputStream = new FileInputStream(file);
+            ServletOutputStream outputStream = resp.getOutputStream();
+            int length = 0;
+            byte[] bytes = new byte[1024];
+            while ((length = fileInputStream.read(bytes)) != -1){
+                outputStream.write(bytes, 0, length);
+            }
+            fileInputStream.close();
+            outputStream.close();
+            return;
+        }
+        //文件不存在
+        resp.setStatus(404);
+        resp.getWriter().println("<div>File Not Found</div>");
     }
 }
