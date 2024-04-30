@@ -286,5 +286,201 @@ public class SetTimeServlet2 extends HttpServlet {
 
 
 
+#### 设置路径
+
+如果没有设置的情况下，仅当访问当**前路径以及当前路径的子路径**时才会携带Cookie，设置了路径之后，可以更改其范围。
+
+比如在访问/a/b/c/servlet1时，创建了一个Cookie对象，那么访问后续地址时，会不会携带Cookie呢？
+
+1.访问/a/b/c/d/serlvet2 会携带
+
+2.访问/a/b/servlet3  不会携带
+
+3.访问/a/serlvet4  不会携带
+
+4.访问/servlet5  不会携带
+
+上述案例中，我们可以给cookie设置一个了路径，可以更改其作用范围。
+
+Cookie设置路径最大的意义在于可以实现同一个tomcat部署的多个应用之间进行数据共享。比如可以把一个商城拆分成若干个功能模块，分别进行部署，各自部署在一个单独的应用中。使用这个特性便可以实现多个应用之间数据共享。
+
+
+
+```java
+@WebServlet("/a/b/c/s1")
+public class PathServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Cookie cookie = new Cookie("path", "abc");
+        cookie.setPath(req.getContextPath() + "/a/");
+        resp.addCookie(cookie);
+    }
+}
+```
+
+
+
+
+
+还有一点需要指出的是，如果cookie设置了路径，那么删除cookie时，需要把路径再次填写一遍，否则客户端不会删除cookie。
+
+需要保证设置的path和创建时设置的一致。
+
+```java
+@WebServlet("/a/s2")
+public class PathServlet2 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Cookie[] cookies = req.getCookies();
+        if(cookies != null){
+            for (Cookie cookie : cookies) {
+                if("path".equals(cookie.getName())){
+                    System.out.println(cookie.getValue());
+                    cookie.setMaxAge(0);
+                    //删除cookie时，需要把创建时设置的path再写一遍，否则不会删除
+                    cookie.setPath(req.getContextPath() + "/a/");
+                    resp.addCookie(cookie);
+                }
+            }
+        }
+    }
+}
+```
+
+
+
+#### 设置域名(掌握)
+
+首先，浏览器针对Cookie设置域名有一个大的前提条件：那就是不可以设置和当前域名无关的Cookie。比如当前所在的域名是localhost，但是希望设置一个Cookie的域名为baidu.com,此时是无法设置成功的。
+
+
+
+如果我们设置了一个父域名的Cookie，那么当访问子域名时，浏览器会自动携带cookie。最大的意义是可以实现跨主机之间的数据共享。
+
+比如：访问京东之后，登录成功之后，生成了一个Cookie，对应的域名为jd.com
+
+后续当访问item.jd.com、miaosha.jd.com等这些域名时，浏览器均会默认携带cookie。
+
+
+
+
+
+演示该案例，过程略有一些复杂：
+
+1.需要在hosts文件中配置域名和本地ip地址的映射关系
+
+2.需要再对应的域名所在的环境下去执行代码，那么浏览器才会将Cookie给保存下来。
+
+```java
+@WebServlet("/dm")
+public class DomainServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Cookie cookie = new Cookie("domain", "ddd");
+        //但是这部分代码是不可以在localhost环境下运行的；
+        //必须要求在ccc.com环境下才可以运行这段代码；但是这个域名我并没有购买，也没有和本地ip地址关联
+        //所以，采取的方式是在hosts文件中去做了映射
+        cookie.setDomain("ccc.com");
+        resp.addCookie(cookie);
+    }
+}
+```
+
+
+
+### Cookie优缺点
+
+优点：客户端存储，减轻服务器压力；小巧轻便；可以实现跨主机、跨应用共享
+
+缺点：只可以存储字符类型；存储在客户端，安全性不是特别的高
+
+
+
+## Session
+
+### 概念
+
+服务器技术，数据的创建和存储均是在服务器完成的。客户端访问服务器时，在某个场景下，服务器给当前客户端开辟了一块内存空间，也就是生成了一个对象；当该客户端再次访问服务器上面的其他资源时，如果需要进行数据共享，那么还是使用之前的这个对象来提供服务。
+
+![image-20240430162759121](assets/image-20240430162759121.png)
+
+因为HTTP协议无状态性，客户端和Session时如何关联的？客户端访问服务器时，服务器究竟应该安排哪个session对象来提供服务？此时需要借助于Cookie来传输session的编号（相当于理发店使用的是手机号码来传递信息一样）
+
+
+
+### 使用
+
+Provides a way to identify a user across more than one page request or visit to a Web site and to store information about that user.
+
+HttpSession可以在多个页面的访问过程中唯一标识一个客户端(因为HTTP协议是无状态性)或者说可以给客户端存储一部分数据。
+
+**getSession()**：当前请求有关联的session对象则返回；如果没有关联的session对象，则创建一个
+
+Returns the current session associated with this request, or if the request does not have a session, creates one.
+
+getSession(boolean create)
+
+Returns the current `HttpSession` associated with this request or, if there is no current session and `create` is true, returns a new session.
+
+If `create` is `false` and the request has no valid `HttpSession`, this method returns `null`.
+
+
+
+1.利用request.getSession()创建(返回)一个Session对象
+
+2.利用session对象来存取数据
+
+```java
+@WebServlet("/ss1")
+public class SessionServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //利用request对象来获取当前请求相关联的session对象
+        //第一次访问的时候需要注意什么？第一次访问，因为之前没有相关联的session对象，所以会创建一个
+        //创建了session对象，如何和客户端产生关联呢？需要把session的编号通过cookie返回给客户端
+        //应该可以看到有一个set-Cookie:JSESSIONID=xxx响应头
+        //后续第二次再次访问当前servlet时，或者访问ss2时，还会不会会该响应头呢？不会
+        HttpSession session = req.getSession();
+
+        //利用session对象来进行数据共享
+        session.setAttribute("username", "kongling");
+
+    }
+}
+```
+
+```java
+@WebServlet("/ss2")
+public class SessionServlet2 extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //利用request对象来获取当前请求相关联的session对象
+        HttpSession session = req.getSession();
+
+        //利用session对象来进行数据共享
+        Object username = session.getAttribute("username");
+        System.out.println(username);
+
+    }
+}
+```
+
+
+
+### Session域和Context域、Request域之间区别
+
+session域：使用session对象来实现数据共享。但是session对象在整个程序运行期间不是一个对象。而是一个客户端就会对应一个session对象。只要是同一个客户端访问的不同资源，那么均可以使用session对象来进行数据共享。
+
+context域：使用serlvetContext对象来进行数据共享。该对象在整个程序的运行期间，有且只有一个实例对象，所以无论是那个客户端，访问的是哪个资源，那么均是访问的是同一个servletContext对象，所以均可以实现数据共享。
+
+request域：只有转发的时候，是使用的是同一个request对象，所以可以共享request域。
+
+
+
 
 
