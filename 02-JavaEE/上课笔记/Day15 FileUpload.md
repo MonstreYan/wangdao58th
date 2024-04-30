@@ -221,7 +221,7 @@ public class MyDefaultServlet extends HttpServlet {
 
 
 
-## 获取常规表单数据
+## 获取常规表单数据(掌握)
 
 在进行文件上传时，还能不能获取常规的表单数据呢？可以的。
 
@@ -261,7 +261,7 @@ public class UploadServlet3 extends HttpServlet {
 
 
 
-## 常见问题
+## 常见问题(熟悉、了解)
 
 **1.如果文件重名，那么应该怎么办？**
 
@@ -318,7 +318,118 @@ public class UploadServlet4 extends HttpServlet {
 
 
 
-## 案例
+## 案例(熟悉)
 
 案例：有一个注册页面，用户输入相应的注册信息(需要上传头像)之后，进行页面跳转，跳转到一个新的页面，要求可以将用户刚刚注册的信息再次回显给用户， 但是头像需要显示出来。
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form action="/app/user/register" enctype="multipart/form-data" method="post">
+        <input type="text" name="username"><br>
+        <input type="password" name="password"><br>
+        <input type="file" name="image"><br>
+        <input type="submit">
+    </form>
+</body>
+</html>
+```
+
+```java
+@WebServlet("/user/*")
+//该注解的功能是让服务器帮助我们去解析请求里面的文件数据，处理过之后再次封装回req对象中
+@MultipartConfig
+public class UserServlet extends HttpServlet {
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //不要着急，上来就在doPost里面写注册逻辑，因为后面可能还会有其他方法也需要使用doPost来分发
+        //因为这里面含有*，所以不可以使用
+//        req.getServletPath()
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/user/", "");
+        if("register".equals(op)){
+            register(req, resp);
+        }
+    }
+
+    //注册的业务逻辑
+    //获取接收用户提交过来的请求参数信息（借助于请求报文）；初步校验比对，保证信息的唯一性，存储到数据库，给页面一个回执信息
+    //如何和另外一个servlet共享数据？
+    //以用户名作为key------对象作为value放入context域中；要求保障用户名唯一
+    //再把用户名传递给info  /user/info?username=xxx
+    //在info中，获取用户名，从context域里面获取数据，取出来里面的内容
+    private void register(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //使用request.getPart获取文件的数据;使用request.getParameter来获取表单数据
+        resp.setContentType("text/html;charset=UTF-8");
+        req.setCharacterEncoding("utf-8");
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
+
+        //判断用户名是否唯一
+        ServletContext servletContext = getServletContext();
+        Object u = servletContext.getAttribute("username");
+        if(u != null){
+            //用户名已经被占用了
+            resp.getWriter().println("当前用户名已经被占用");
+            return;
+        }
+
+        Part part = req.getPart("image");
+        String filename = part.getSubmittedFileName();
+        filename = UUID.randomUUID() + filename;
+        //D:/xxx/xxx/xxx/xxx
+        String relativePath = "image/" + filename;
+        String realPath = servletContext.getRealPath(relativePath);
+        //file就是对于硬盘上某个文件的封装
+        File file = new File(realPath);
+        //如果父级目录不存在，则创建所有的父级目录
+        if(!file.getParentFile().exists()){
+            file.getParentFile().mkdirs();
+        }
+        part.write(realPath);
+        //todo image
+        User user = new User(username, password, relativePath);
+
+        servletContext.setAttribute(username, user);
+
+        resp.getWriter().println("注册成功，即将跳转至信息预览页面");
+        resp.setHeader("refresh", "2;url=" + req.getContextPath() + "/user/info?username=" + username);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/user/", "");
+        if("info".equals(op)){
+            info(req, resp);
+        }
+    }
+
+    private void info(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+//        register里面包含的数据需要和当前info进行共享
+        String username = req.getParameter("username");
+        ServletContext servletContext = getServletContext();
+        User user = (User) servletContext.getAttribute(username);
+        resp.getWriter().println("<div>" + user.getUsername() + "</div>");
+        resp.getWriter().println("<div>" + user.getPassword() + "</div>");
+        //   /app/image/xxxx.jpg
+        resp.getWriter().println("<div><img src='" + req.getContextPath() + "/" + user.getImage() + "'></div>");
+
+    }
+}
+```
+
+
+
+思考题：
+
+1.尝试使用年月日来完成多级目录
+
+2.尝试将图片的存储目录设定为任意盘符目录下，而不是位于应用根目录中
 
