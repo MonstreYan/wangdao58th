@@ -614,7 +614,163 @@ public class UserServlet extends HttpServlet {
 
 
 
+## 购物车案例
 
+```java
+/**
+ * @Author 远志 zhangsong@cskaoyan.onaliyun.com
+ * @Date 2024/5/2 11:01
+ * jd  :item.jd.com/xxxx.html -------------   *.html
+ * taobao  item.taobao.com/item.htm?id=xxx
+ * @Version 1.0
+ */
+//使得init方法随着应用的启动而调用
+@WebServlet(value = "/index",loadOnStartup = 1)
+public class HomeIndexServlet extends HttpServlet {
+
+    //让init方法提前执行
+    @Override
+    public void init() throws ServletException {
+        List<Product> productList = new ArrayList<>();
+        productList.add(new Product("1", "问界M5", "入门款智驾车"));
+        productList.add(new Product("2", "问界M7", "中级智驾车"));
+        productList.add(new Product("3", "小米su7", "明星流量车型"));
+        productList.add(new Product("4", "极氪001", "猎装车"));
+        getServletContext().setAttribute("productList", productList);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //接下来，我们自己去创建几个商品，用来去模拟从数据库中检索出的商品信息
+        resp.setContentType("text/html;charset=UTF-8");
+
+        List<Product> productList = (List<Product>) getServletContext().getAttribute("productList");
+        for (Product product : productList) {
+            resp.getWriter().println("<div><a href='" + req.getContextPath() + "/item?id=" + product.getId() + "'>" + product.getName() + "</a></div>");
+        }
+    }
+}
+
+```
+
+```java
+/**
+ * @Author 远志 zhangsong@cskaoyan.onaliyun.com
+ * @Date 2024/5/2 11:11
+ * @Version 1.0
+ */
+@WebServlet("/item")
+public class ItemServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+//        /item?id=1 统一的使用request.getParameter来获取
+        resp.setContentType("text/html;charset=utf-8");
+        String id = req.getParameter("id");
+        //做一些校验
+        if(StringUtils.isEmpty(id)){
+            resp.getWriter().println("参数不可以为空");
+            return;
+        }
+        List<Product> productList = (List<Product>) getServletContext().getAttribute("productList");
+        //判断id是否和某个商品的编号一致，那么便打印该信息，但是不要较真，这里面只是做一个演示
+        for (Product product : productList) {
+            if(product.getId().equals(id)){
+                resp.getWriter().println(product);
+            }
+        }
+        resp.getWriter().println("<div><a href='" + req.getContextPath() + "/index" + "'>返回首页</a></div>");
+        resp.getWriter().println("<div><a href='" + req.getContextPath() + "/addCart?id=" + id + "'>加入购物车</a></div>");
+        resp.getWriter().println("<div><a href='" + req.getContextPath() + "/viewCart" + "'>查看购物车</a></div>");
+
+
+    }
+}
+```
+
+```java
+
+/**
+ * @Author 远志 zhangsong@cskaoyan.onaliyun.com
+ * @Date 2024/5/2 11:40
+ * @Version 1.0
+ */
+@WebServlet("/viewCart")
+public class ViewCartServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //查看购物车 ids
+        resp.setContentType("text/html;charset=utf-8");
+
+        HttpSession session = req.getSession();
+        List<String> ids = (List<String>) session.getAttribute("ids");
+        if(ids == null){
+            resp.setHeader("refresh", "2;url=" + req.getContextPath() + "/index");
+            return;
+        }
+        //商品中除了id编号之外的其他部分位于context域中
+        List<Product> productList = (List<Product>) getServletContext().getAttribute("productList");
+        for (String id : ids) {
+            for (Product product : productList) {
+                if(id.equals(product.getId())){
+                   resp.getWriter().println(product);
+                }
+            }
+        }
+
+    }
+}
+```
+
+```java
+/**
+ * @Author 远志 zhangsong@cskaoyan.onaliyun.com
+ * @Date 2024/5/2 11:30
+ * @Version 1.0
+ */
+@WebServlet("/addCart")
+public class AddCartServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html;charset=utf-8");
+        resp.setContentType("text/html;charset=utf-8");
+        String id = req.getParameter("id");
+        //做一些校验
+        if(StringUtils.isEmpty(id)){
+            resp.getWriter().println("参数不可以为空");
+            return;
+        }
+        //加入购物车：
+        HttpSession session = req.getSession();
+        //每个人的购物车里面永远只有一个商品
+//        session.setAttribute("id:" + id, null);
+//        session.setAttribute("id", id);
+
+        // todo 介绍一个思想：先get后set
+        List<String> ids = (List<String>) session.getAttribute("ids");
+        if(ids == null){
+            ids = new ArrayList<>();
+        }
+        ids.add(id);
+        session.setAttribute("ids", ids);
+        resp.setHeader("refresh", "2;url=" + req.getContextPath() + "/index");
+    }
+}
+```
+
+
+
+## 禁用Cookie之后的Session策略
+
+session的底层实现需要借助于Cookie，但是浏览器是可以选择禁用Cookie的；如果禁用了Cookie之后，怎么办呢？
+
+可以采取一种叫做URL重写的方式来实现。
+
+response.encodeURL(path)重写过后，会将jsessionid的编号附着在地址栏的后面。
+
+http://localhost:8080/app/item;jsessionid=xxxx
 
 
 
