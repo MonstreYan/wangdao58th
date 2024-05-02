@@ -1,0 +1,3 @@
+/user/info
+/order/list
+/home/follow
