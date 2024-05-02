@@ -365,11 +365,11 @@ http://localhost:8080/app/servlet1为例
 
 5.Connector会将这两个对象传递给Engine，Engine进一步传递给Host，Host去挑选一个Context(/app)
 
-6.Context接收到这两个对象之后，此时需要进行处理的有效路径部分为/serlvet1，首先去查找在当前项目中有没有编写对应的filter可以处理该请求，如果有，则加入到请求处理的链表中；如果有多个，则按照先后顺序组织好；随后再查看有没有配置对应的Servlet可以处理该请求，如果有，则将对应的Serlvet加入到链表的末尾；如果没有，则将缺省Servlet加入到链表的末尾
+6.Context接收到这两个对象之后，此时需要进行处理的有效路径部分为/servlet1，首先去查找在当前项目中有没有编写对应的filter可以处理该请求，如果有，则加入到请求处理的链表中；如果有多个，则按照先后顺序组织好；随后再查看有没有配置对应的Servlet可以处理该请求，如果有，则将对应的Serlvet加入到链表的末尾；如果没有，则将缺省Servlet加入到链表的末尾
 
 7.Context会按照链表的顺序依次去调用链上的每一个组件，如果是filter，则调用其doFilter()方法；如果是serlvet，则调用其service()方法，调用方法时，需要传递两个参数，刚好把request、response作为 参数传递进去
 
-8.最终Connector读取response里面的数据，生成HTTP响应报文
+8.最终Connector读取response里面的数据，生成HTTP响应报文。
 
 ![image-20240502164635120](assets/image-20240502164635120.png)
 
