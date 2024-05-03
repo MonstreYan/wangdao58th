@@ -1,9 +1,10 @@
-package com.cskaoyan.th58;
+package com.cskaoyan.th58.controller;
 
+import com.cskaoyan.th58.model.User;
+import com.cskaoyan.th58.model.UserDBModel_deprecate;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebListener;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -15,8 +16,8 @@ import java.io.IOException;
  * @Date 2024/5/3 10:35
  * @Version 1.0
  */
-@WebServlet("/user/*")
-public class UserServlet extends HttpServlet {
+//@WebServlet("/user/*")
+public class UserController_bak extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -45,6 +46,33 @@ public class UserServlet extends HttpServlet {
         if(StringUtils.isEmpty(username)){
             resp.getWriter().println("用户名不能为空");
             return;
+        }
+        if(StringUtils.isEmpty(password)){
+            resp.getWriter().println("密码不能为空");
+            return;
+        }
+        if(StringUtils.isEmpty(confirmPass)){
+            resp.getWriter().println("确认密码不能为空");
+            return;
+        }
+        //确认密码和确认密码一致
+        if(!password.equals(confirmPass)){
+            resp.getWriter().println("两次密码不一致");
+            return;
+        }
+        //因为我们先使用json文件来存储用户的信息，首先我们要确认当前用户名在json文件中是唯一的
+        //如果json文件中最终存储了很多人的信息，那么应该是[{"username":"", "password": "sda"},{},{}]------》 List<User>
+        //位于classpath目录下有这么一个文件，需要去做的事情便是去读取该文件里面的数据，确认当前用户名是否唯一
+        //变更这一行代码 进行下面两行代码的切换即可
+        Integer code = UserDBModel_deprecate.register(new User(username, password));
+//        Integer code = UserJsonModel.register(new User(username, password));
+
+        if(code == 404){
+            resp.getWriter().println("当前用户名已经被注册");
+        }else if(code == 200){
+            resp.getWriter().println("注册成功");
+        }else {
+            resp.getWriter().println("服务器繁忙");
         }
     }
 
