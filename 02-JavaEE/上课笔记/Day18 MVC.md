@@ -587,6 +587,218 @@ public class UserController extends HttpServlet {
 
 ![image-20240503115311400](assets/image-20240503115311400.png)
 
+此时，处理一些比较简单的业务逻辑已经没有什么大问题，但是如果要去处理一些比较复杂的业务逻辑，那么还是会出现一些局限性。比如假如当前是一个商品的修改模块，需要修改商品的规格，不仅需要修改现有的规格，还有可能需要新增规格，那么我们如果希望实现这个功能，有两种方案：
+
+方案一：
+
+有编号的规格执行修改操作，没有编号的规格执行新增操作
+
+方案二：
+
+将现有规格全部删除，统一执行新增操作
+
+```java
+//实现某个业务功能，有两种实现方式
+    //方式一：部分执行修改操作；部分执行新增操作
+    //方式二：先执行删除操作，后续全部执行新增操作
+    //如果希望使用方案一，那么将方案二注释；如果使用方案二，将方案一注释
+    //不可能出现需求变更时，永远都是代码同步修改去适配需求的变更
+    public void function(){
+
+        //方案一
+        userMapper.update();
+        userMapper.insert();
+
+        //方案二：
+        userMapper.delete();
+        userMapper.insert();
+
+
+    }
+```
+
+基于上述存在的问题，我们不能够每次需求变化时，都去同步修改代码来适配需求的变更。
+
+所以需要对代码进行第三次改造，引入一个中间层。service层。
+
+### 第三次代码改造
+
+实际上，是在符合MVC设计模式的基础上，进一步去提出一个叫做三层架构的概念。
+
+三层架构：指的是将业务代码进行进一步解耦分离，分离出展示层、业务层、数据层。通俗的可以理解为controller、**service**、mapper(dao).
+
+所以，第三次改造其实就是进一步去拆分出业务层。
+
+为什么需要业务层呢？
+
+如果没有业务层，在遇到比较复杂的需求时，还是会出现需要修改现有代码来适配需求变更的情况。
+
+Controller:
+
+```java
+@WebServlet("/user/*")
+public class UserController extends HttpServlet {
+
+    //思考一个问题：如果注册时候使用的是json文件，那么登录的时候也应该要使用json文件
+    //那么是否意味着下面的这一个接口指向之类实现，可以写成成员变量
+    //写成成员变量之后，那么方法内部还有没有需要变更的部分？？？？？？？？
+//    UserMapper userMapper = new UserJsonMapper();
+
+    UserService userService = new UserServiceImpl2();
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        //首先先进行方法的分发
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/user/", "");
+        if("register".equals(op)){
+            register(req, resp);
+        }else if("login".equals(op)){
+            login(req, resp);
+        }
+    }
+
+    private void login(HttpServletRequest req, HttpServletResponse resp) {
+        //UserMapper userMapper = new UserJsonMapper();
+    }
+
+    //注册的业务逻辑：
+    //接收用户提交过来的请求参数信息，进行校验，保障用户信息的唯一性，存储到系统中，给用户返回回执信息
+    private void register(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        //接收用户提交过来的请求参数信息：还是使用的是form表单，依然是key=value&key=value
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
+        String confirmPass = req.getParameter("confirmPass");
+        //保障数据都不为空
+        if(StringUtils.isEmpty(username)){
+            resp.getWriter().println("用户名不能为空");
+            return;
+        }
+        if(StringUtils.isEmpty(password)){
+            resp.getWriter().println("密码不能为空");
+            return;
+        }
+        if(StringUtils.isEmpty(confirmPass)){
+            resp.getWriter().println("确认密码不能为空");
+            return;
+        }
+        //确认密码和确认密码一致
+        if(!password.equals(confirmPass)){
+            resp.getWriter().println("两次密码不一致");
+            return;
+        }
+        //因为我们先使用json文件来存储用户的信息，首先我们要确认当前用户名在json文件中是唯一的
+        //如果json文件中最终存储了很多人的信息，那么应该是[{"username":"", "password": "sda"},{},{}]------》 List<User>
+        //位于classpath目录下有这么一个文件，需要去做的事情便是去读取该文件里面的数据，确认当前用户名是否唯一
+        //变更这一行代码 进行下面两行代码的切换即可
+
+        Integer code = userService.register(new User(username, password));
+
+//        Integer code = UserDBModel_deprecate.register(new User(username, password));
+//        Integer code = UserJsonModel.register(new User(username, password));
+
+        if(code == 404){
+            resp.getWriter().println("当前用户名已经被注册");
+        }else if(code == 200){
+            resp.getWriter().println("注册成功");
+        }else {
+            resp.getWriter().println("服务器繁忙");
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    }
+
+
+    //实现某个业务功能，有两种实现方式
+    //方式一：部分执行修改操作；部分执行新增操作
+    //方式二：先执行删除操作，后续全部执行新增操作
+    //如果希望使用方案一，那么将方案二注释；如果使用方案二，将方案一注释
+    //不可能出现需求变更时，永远都是代码同步修改去适配需求的变更
+    public void function(){
+
+
+        userService.function();
+
+        //方案一
+//        userMapper.update();
+//        userMapper.insert();
+//
+//        //方案二：
+//        userMapper.delete();
+//        userMapper.insert();
+
+
+    }
+}
+```
+
+Service:
+
+```java
+public interface UserService {
+
+
+    Integer register(User user);
+
+    void function();
+}
+
+public class UserServiceImpl implements UserService{
+
+    UserMapper userMapper = new UserJsonMapper();
+
+    @Override
+    public Integer register(User user) {
+        return userMapper.register(user);
+    }
+
+    @Override
+    public void function() {
+        //方案一：
+//        userMapper.update();
+//        userMapper.insert();
+    }
+}
+
+public class UserServiceImpl2 implements UserService{
+
+    UserMapper userMapper = new UserJsonMapper();
+
+    @Override
+    public Integer register(User user) {
+        return userMapper.register(user);
+    }
+
+    @Override
+    public void function() {
+        //方案二
+//        userMapper.delete();
+//        userMapper.insert();
+    }
+}
+```
+
+![image-20240503144958600](assets/image-20240503144958600.png)
+
+此时的代码调用关系时controller调用service，service调用mapper。
+
+
+
+### 总结
+
+关于controller、service、mapper的功能非常类似于购买汽车的过程
+
+controller：类似于汽车的4s门店。主要功能是负责接收客户端的请求，做出一些初步的校验，随后负责调用service的代码，根据serivce代码的执行结果，调用不同的视图。
+
+service：类似于汽车的生成车间，负责去调用一个一个的mapper方法，组转成一个具有完备功能的代码片段。
+
+mapper：类似于零部件的生成车间，主要就是负责去实现一个一个的增删改查功能。
+
+
+
 
 
 

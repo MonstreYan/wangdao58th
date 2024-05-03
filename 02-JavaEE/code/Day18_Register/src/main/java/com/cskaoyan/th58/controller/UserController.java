@@ -4,6 +4,9 @@ import com.cskaoyan.th58.mapper.UserJsonMapper;
 import com.cskaoyan.th58.mapper.UserMapper;
 import com.cskaoyan.th58.model.User;
 import com.cskaoyan.th58.model.UserDBModel_deprecate;
+import com.cskaoyan.th58.service.UserService;
+import com.cskaoyan.th58.service.UserServiceImpl;
+import com.cskaoyan.th58.service.UserServiceImpl2;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.ServletException;
@@ -24,8 +27,9 @@ public class UserController extends HttpServlet {
     //思考一个问题：如果注册时候使用的是json文件，那么登录的时候也应该要使用json文件
     //那么是否意味着下面的这一个接口指向之类实现，可以写成成员变量
     //写成成员变量之后，那么方法内部还有没有需要变更的部分？？？？？？？？
-    UserMapper userMapper = new UserJsonMapper();
+//    UserMapper userMapper = new UserJsonMapper();
 
+    UserService userService = new UserServiceImpl2();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -73,7 +77,7 @@ public class UserController extends HttpServlet {
         //位于classpath目录下有这么一个文件，需要去做的事情便是去读取该文件里面的数据，确认当前用户名是否唯一
         //变更这一行代码 进行下面两行代码的切换即可
 
-        Integer code = userMapper.register(new User(username, password));
+        Integer code = userService.register(new User(username, password));
 
 //        Integer code = UserDBModel_deprecate.register(new User(username, password));
 //        Integer code = UserJsonModel.register(new User(username, password));
@@ -89,6 +93,28 @@ public class UserController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    }
+
+
+    //实现某个业务功能，有两种实现方式
+    //方式一：部分执行修改操作；部分执行新增操作
+    //方式二：先执行删除操作，后续全部执行新增操作
+    //如果希望使用方案一，那么将方案二注释；如果使用方案二，将方案一注释
+    //不可能出现需求变更时，永远都是代码同步修改去适配需求的变更
+    public void function(){
+
+
+        userService.function();
+
+        //方案一
+//        userMapper.update();
+//        userMapper.insert();
+//
+//        //方案二：
+//        userMapper.delete();
+//        userMapper.insert();
+
 
     }
 }
