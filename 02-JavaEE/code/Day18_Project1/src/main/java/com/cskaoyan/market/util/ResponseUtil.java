@@ -60,12 +60,14 @@ public class ResponseUtil {
         data.put("list", list);
 
         if (list instanceof Page) {
+            //使用分页插件
             Page page = (Page) list;
             data.put("total", page.getTotal());
             data.put("page", page.getPageNum());
             data.put("limit", page.getPageSize());
             data.put("pages", page.getPages());
         } else {
+            //没有使用分页插件
             data.put("total", list.size());
             data.put("page", 1);
             data.put("limit", list.size());
