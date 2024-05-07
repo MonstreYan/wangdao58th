@@ -1,11 +1,13 @@
 package com.cskaoyan.market.controller;
 
+import com.cskaoyan.market.bo.AddGoodsBo;
 import com.cskaoyan.market.db.domain.MarketGoods;
 import com.cskaoyan.market.service.MarketGoodsService;
 import com.cskaoyan.market.service.MarketGoodsServiceImpl;
 import com.cskaoyan.market.util.JacksonUtil;
 import com.cskaoyan.market.util.ResponseUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -71,6 +73,22 @@ public class AdminGoodsController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String requestURI = req.getRequestURI();
+        String op = requestURI.replace(req.getContextPath() + "/admin/goods/", "");
+        if("create".equals(op)){
+            create(req, resp);
+        }
+    }
 
+    private void create(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        //获取位于请求体里面的json字符串
+        String requestBody = req.getReader().readLine();
+        ObjectMapper objectMapper = JacksonUtil.getObjectMapper();
+        AddGoodsBo addGoodsBo = objectMapper.readValue(requestBody, AddGoodsBo.class);
+        //商品上架的逻辑：将这些数据存储到几张表中
+        goodsService.create(addGoodsBo.getGoods(), addGoodsBo.getSpecifications(), addGoodsBo.getProducts(), addGoodsBo.getAttributes());
+
+        //ok
+        resp.getWriter().println(JacksonUtil.getObjectMapper().writeValueAsString(ResponseUtil.ok()));
     }
 }

@@ -1,6 +1,9 @@
 package com.cskaoyan.market.service;
 
 import com.cskaoyan.market.db.domain.MarketGoods;
+import com.cskaoyan.market.db.domain.MarketGoodsAttribute;
+import com.cskaoyan.market.db.domain.MarketGoodsProduct;
+import com.cskaoyan.market.db.domain.MarketGoodsSpecification;
 
 import java.util.List;
 import java.util.Map;
@@ -14,4 +17,6 @@ public interface MarketGoodsService {
     List<MarketGoods> list(Integer page, Integer limit, String sort, String order, String goodsId, String goodsSn, String name);
 
     Map<String, Object> catAndBrand();
+
+    void create(MarketGoods goods, List<MarketGoodsSpecification> specifications, List<MarketGoodsProduct> products, List<MarketGoodsAttribute> attributes);
 }
