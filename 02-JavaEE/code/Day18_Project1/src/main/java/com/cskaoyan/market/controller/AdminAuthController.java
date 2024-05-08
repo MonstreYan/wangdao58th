@@ -78,7 +78,7 @@ public class AdminAuthController extends HttpServlet {
             return;
         }
         //用户名、密码匹配------做到和公网具有相同的返回结果
-        //设置响应体 字符流  字节流 todo
+        //设置响应体 字符流  字节流
         Map<String, Object> data = new HashMap<>();
         Map<String, String> adminInfo = new HashMap<>();
         adminInfo.put("nickName", marketAdmin.getUsername());

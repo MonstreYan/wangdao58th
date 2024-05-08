@@ -6,6 +6,7 @@ import com.cskaoyan.market.service.MarketStorageServiceImpl;
 import com.cskaoyan.market.util.JacksonUtil;
 import com.cskaoyan.market.util.ResponseUtil;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -47,9 +48,11 @@ public class AdminStorageController extends HttpServlet {
         String key  = UUID.randomUUID() + "-" + fileName;
         //打算把文件存储在任意目录下，不用限制一定得在应用根目录下
         //不在应用根目录下，那么便无法在借助于缺省Servlet，你必须得自己去写一个servlet来处理
-        //文件假定放在D:/image/目录下 todo
-        String basePath = "D:\\image";
-        part.write(basePath + "\\" + key);
+        //文件假定放在D:/image/目录下
+        //获取ServletContext对象
+        ServletContext servletContext = getServletContext();
+        String path = (String) servletContext.getAttribute("path");
+        part.write(path + "/" + key);
 
         //把上传的这条记录存储到数据库中
         MarketStorage marketStorage = new MarketStorage();
@@ -72,9 +75,11 @@ public class AdminStorageController extends HttpServlet {
 
         //在这个地方再对url进行处理，追加上主机端口号
         //此时，经过数据库存储之后id便有了值，然后对url进行处理
-        //todo 明天将其写入到配置文件中
+        // 明天将其写入到配置文件中
         String url = marketStorage.getUrl();
-        marketStorage.setUrl("http://localhost:8083" + url);
+        String domain = (String) servletContext.getAttribute("domain");
+
+        marketStorage.setUrl(domain + url);
         //响应出去
         resp.getWriter().println(JacksonUtil.getObjectMapper().writeValueAsString(ResponseUtil.ok(marketStorage)));
     }

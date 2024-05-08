@@ -9,7 +9,7 @@ import java.io.IOException;
  * @Date 2024/5/4 9:25
  * @Version 1.0
  */
-@WebFilter("/*")
+//@WebFilter("/*")
 public class CharacterEncodingFilter implements Filter {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
