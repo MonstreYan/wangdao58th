@@ -113,7 +113,237 @@ public class SpringTest {
 
 
 
-但是在上述案例中，其实对象和对象之间没有产生关联。
+但是在上述案例中，其实对象和对象之间没有产生关联。需要进一步做如下设置：
+
+```java
+public class UserServiceImpl implements UserService{
+
+    //希望从Spring容器中奖当前service实现类取出来的时候，mapper是有值的，不是null
+    UserMapper userMapper;
+
+    //如果希望spring帮助我们进行注入，那么需要提供一个set方法，暂时需要，后续学完注解之后就不再需要了
+    public void setUserMapper(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
+}
+```
 
 
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--放入spring容器中的对象称之为bean；id是指的是放入容器中的对象的编号；class是其全限定类名-->
+    <bean id="userService" class="com.cskaoyan.th58.service.UserServiceImpl">
+        <!--第一个name里面的值指的是成员变量的名称；第二个ref指的是bean的id-->
+        <property name="userMapper" ref="userMapper1"/>
+    </bean>
+
+    <bean id="userMapper1" class="com.cskaoyan.th58.mapper.UserMapperImpl"/>
+
+</beans>
+```
+
+
+
+## 实例化Bean
+
+### 构造函数
+
+虽然Spring会借助于反射来创建出Bean对象，其实本质上来说依然是要借助于构造函数，绝大多数的情况下，使用的是无参构造函数。
+
+### 静态工厂以及实例工厂
+
+关于在xml文件中使用构造函数、静态工厂、实例工厂创建bean对象的方式了解即可，知道有这么一回事即可，后续基本不会用到，因为后面基本都会使用基于注解、配置类的方式。
+
+
+
+### FactoryBean(掌握)
+
+其中，有一种方式，是基于FactoryBean的方式，需要大家重点关注、重点掌握。
+
+如果某个类实现了FactoryBean接口，那么直接利用其编号取出来的并不是该对象本身，而是getObject()返回值结果。
+
+比如：
+
+利用DBFactoryBean的编号，从容器中获取，其实并不能够获取DBFactoryBean对象，而是获取的是getObject()返回值，也就是db。
+
+```java
+public class DBFactoryBean implements FactoryBean{
+    
+    public Object getObject(){
+        return db;
+    }
+}
+```
+
+配置：
+
+```xml
+    <bean id="userfb" class="com.cskaoyan.th58.factorBean.UserFactorBean"/>
+
+```
+
+代码：
+
+```java
+public class UserFactorBean implements FactoryBean<User> {
+    @Override
+    public User getObject() throws Exception {
+        return new User();
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return User.class;
+    }
+}
+```
+
+单元测试：
+
+```java
+@Test
+    public void test2(){
+        ApplicationContext context = new ClassPathXmlApplicationContext("app.xml");
+        //思考：类型究竟是什么类型？？？？是UserFactoryBean类型还是User类型？？？？？？User类型
+        Object userfb = context.getBean("userfb");
+        System.out.println(userfb);
+    }
+```
+
+最终，我们利用编号取出来的却是User，而不是UserFactoryBean。
+
+> 使用场景：
+>
+> 后续mybatis整合Spring需要导入一个jar包，叫做mybatis-spring jar包，里面有一个类叫做SqlSessionFactoryBean。
+>
+> 
+
+
+
+## 组件注册方式
+
+> 把一个大象放入冰箱需要几步？？？打开冰箱、放入大象、关上冰箱。
+>
+> 把一个对象放入spring容器中需要几步？？？需要创建对象，创建好的对象放入到spring容器中，但是其实在开发过程中，这两步基本是一起的。
+
+### xml文件
+
+也就是入门案例中，我们给大家介绍的这种方式。后续使用的场景不是特别多了，只是入门案例起到一个过渡作用即可。
+
+
+
+### 配置类  + @Bean注解方式(掌握)
+
+在前面的课程中，我们提及过ApplicationContext可以通过读取xml文件，也可以通过读取配置类、注解的方式来实例化Spring容器。这种方式是后续开发过程中使用的比较多的使用场景。
+
+操作步骤：
+
+1.新建一个config包，新建一个配置类，标注@Configuration注解，声明其是一个配置类
+
+2.在配置类中去编写一个一个的方法，方法的要求如下：
+
+原理：凡是配置类中标注了@Bean注解的方法，那么Spring会依次去扫描，依次去运行，得到一个实例对象，把该实例对象放入到spring容器中。
+
+> 之前不是说，使用spring之后，不需要自己再去new对象了吗？为什么此处还是自己去new？？？？
+>
+> 不是说使用spring之后，绝对不会去使用new关键字，而是该对象有没有交给spring去管理维护。
+
+- 编写一个方法，方法的修饰符要求是public
+- 方法的返回值类型便是注册到Spring容器中的组件类型，一般建议使用父接口类型来接收
+- 方法的名称便是注册到Spring容器中该组件的编号
+- **如果需要注入依赖，那么使用@Bean注解的话非常简单：直接在方法的形参中编写你需要从容器中取出来的组件的类型，Spring容器便会自动从容器中取出对应的类型的组件。**
+
+如果不需要维护对象和对象之间的依赖关系，那么下面的写法就ok了
+
+```java
+@Configuration
+public class SpringConfig {
+
+    //你希望向spring容器中去注册哪个组件，那么便编写哪个对象的创建语句
+    @Bean
+    public UserService userService(){
+        UserServiceImpl userService = new UserServiceImpl();
+        //userService.setUserMapper();
+        return userService;
+    }
+
+    @Bean
+    public OrderService orderService(){
+        OrderServiceImpl orderService = new OrderServiceImpl();
+       // orderService.setUserMapper();
+        return orderService;
+    }
+
+    @Bean
+    public UserMapper userMapper(){
+        UserMapper userMapper = new UserMapperImpl();
+        return userMapper;
+    }
+}
+```
+
+但是如果需要维护对象和对象之间的关系：
+
+```java
+//声明其是一个配置类
+@Configuration
+public class SpringConfig {
+
+    //你希望向spring容器中去注册哪个组件，那么便编写哪个对象的创建语句
+    @Bean
+    public UserService userService(UserMapper userMapper){
+        UserServiceImpl userService = new UserServiceImpl();
+        //service实现类需要提供set方法即可
+        userService.setUserMapper(userMapper);
+        return userService;
+    }
+
+    //Spring处理过程：1.根据方法的返回值类型，得知最终注入到Spring容器中的是OrderService类型的对象
+    //2.方法的名称叫做orderService，所以注册到spring容器中的对象的编号为orderService
+    //3.方法的形参列表有一个叫做UserMapper，所以spring会扫描容器，从容器中取出一个UserMapper实例对象，在调用当前方法时传递进来
+    @Bean
+    public OrderService orderService(UserMapper userMapper){
+        OrderServiceImpl orderService = new OrderServiceImpl();
+        orderService.setUserMapper(userMapper);
+        return orderService;
+    }
+
+    @Bean
+    public UserMapper userMapper(){
+        UserMapper userMapper = new UserMapperImpl();
+        return userMapper;
+    }
+}
+```
+
+使用场景：
+
+主要用在整合第三方框架时，把第三方框架里面的类库放入到spring容器中。
+
+
+
+
+
+![image-20240511114825770](assets/image-20240511114825770.png)
+
+
+
+
+
+> 关于注解、反射的补充
+>
+> 注解可以有功能，也可以没有功能，和注释一样的效果。完全取决于开发人员有没有去编写代码去处理这个注解。
+>
+> 如果编译之后的class文件在运行时，依然存在该注解，那么利用Class对象(Class对象就是用来去记录每个class文件的信息的)是可以获取该注解的信息的。
+>
+> 如果某个class文件的类头上、方法的头上标注了某个注解，那么都会体现在Class对象里面。
+>
+> Class对象也可以扫描所有的方法，去查看某个方法上面有没有标注该注解
+>
+> 

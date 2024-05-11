@@ -27,4 +27,13 @@ public class SpringTest {
         System.out.println(userService);
         System.out.println(userMapper);
     }
+
+
+    @Test
+    public void test2(){
+        ApplicationContext context = new ClassPathXmlApplicationContext("app.xml");
+        //思考：类型究竟是什么类型？？？？是UserFactoryBean类型还是User类型？？？？？？User类型
+        Object userfb = context.getBean("userfb");
+        System.out.println(userfb);
+    }
 }

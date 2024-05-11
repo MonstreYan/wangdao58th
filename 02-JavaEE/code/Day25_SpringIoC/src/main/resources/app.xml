@@ -11,4 +11,6 @@
 
     <bean id="userMapper1" class="com.cskaoyan.th58.mapper.UserMapperImpl"/>
 
+
+    <bean id="userfb" class="com.cskaoyan.th58.factorBean.UserFactorBean"/>
 </beans>
