@@ -346,4 +346,120 @@ public class SpringConfig {
 >
 > Class对象也可以扫描所有的方法，去查看某个方法上面有没有标注该注解
 >
-> 
+
+如果希望从容器中获取指定的对象，可以使用@Qualifier
+
+```java
+//声明其是一个配置类
+@Configuration
+public class SpringConfig {
+
+    //你希望向spring容器中去注册哪个组件，那么便编写哪个对象的创建语句
+    @Bean
+    public UserService userService(UserMapper userMapper){
+        UserServiceImpl userService = new UserServiceImpl();
+        userService.setUserMapper(userMapper);
+        return userService;
+    }
+
+    //Spring处理过程：1.根据方法的返回值类型，得知最终注入到Spring容器中的是OrderService类型的对象
+    //2.方法的名称叫做orderService，所以注册到spring容器中的对象的编号为orderService
+    //3.方法的形参列表有一个叫做UserMapper，所以spring会扫描容器，从容器中取出一个UserMapper实例对象，在调用当前方法时传递进来
+
+    //如果某个类型的实例对象有多个的话，并且希望指定从容器中获取对应的实例对象，那么可以使用Qualifier注解即可，里面写上bean编号即可
+    @Bean
+    public OrderService orderService(@Qualifier("userMapper2") UserMapper userMapper){
+        OrderServiceImpl orderService = new OrderServiceImpl();
+        orderService.setUserMapper(userMapper);
+        return orderService;
+    }
+
+    @Bean
+    public UserMapper userMapper(){
+        UserMapper userMapper = new UserMapperImpl();
+        return userMapper;
+    }
+
+    @Bean
+    public UserMapper userMapper2(){
+        UserMapper userMapper = new UserMapperImpl2();
+        return userMapper;
+    }
+}
+```
+
+
+
+### 配置类 + @ComponentScan注解(掌握)
+
+1.编写一个配置类，标注@Configuration注解
+
+2.配置类还需要标注一个注解@ComponentScan注解，设定扫描的包目录
+
+> 关于组件，如何理解？？？？就是对象，就是java里面的bean对象，这里面称之为组件主要原因在于它具有特殊的功能，比如MVC设计模式中以及三层架构中出现的对象，比如Controller、Service、Mapper等，是不是对象？？是，只不过它具有特殊的功能含义，所以我们也称之为组件
+
+
+
+```java
+/**
+ * @Author 远志 zhangsong@cskaoyan.onaliyun.com
+ * @Date 2024/5/13 9:57
+ * @Version 1.0
+ */
+//首先声明它是一个配置类
+    //添加一个@ComponentScan注解：设定扫描的包目录(可以递归的方式扫描到所有的类，那么哪些需要放入到spring容器中呢)，需要放入到Spring容器中的组件对象设定对应的注解即可
+    //我们需要将那些需要放入到spring容器中的类头上标注@Component注解，凡是标注了该注解，那么便会被spring所处理，因为spring得知所有类的全限定类名，根据标注了该注解，通过反射实例化对象，放入spring容器中
+    //关于@Component注解有一个额外的说明：为了能够很形象地表示出这些组件的功能定位，spring额外制定了一系列的其他注解，比如@Controller、@Service、@Repository注解，这几个注解其实就是对应的是三层架构中的三个组件
+    //使用上述三个注解和@Component注解的功能完全等价；不在三层架构组件中的对象，直接标注@Component即可
+    //使用这种方式，如何将对象和对象之间产生关联呢？需要使用一个叫做@Autowired注解，表示的是从容器中获取指定类型的对象
+    //如果符合同一个类型的实例对象有多个，那么使用@Qualifier(id)，这种方式注册的组件的编号是什么呢？类名的首字母小写
+@Configuration
+@ComponentScan("com.cskaoyan.th58")
+public class SpringConfig {
+}
+```
+
+
+
+
+
+```java
+@Service
+public class OrderServiceImpl implements OrderService{
+
+    @Autowired
+    @Qualifier("userMapperImpl2")
+    UserMapper userMapper;
+
+    //下面这种方式其实有一些繁琐，我们可以将set方法省略，直接利用属性进行赋值
+
+//    @Autowired
+//    public void setUserMapper(@Qualifier("userMapperImpl2") UserMapper userMapper) {
+//        this.userMapper = userMapper;
+//    }
+}
+
+```
+
+**使用场景：项目中编写的业务代码，使用的是这种方式。**
+
+![image-20240513102530894](assets/image-20240513102530894.png)
+
+## 组件获取方式
+
+说白了便是从spring容器中获取指定的实例对象。
+
+
+
+### getBean方法
+
+利用容器的getBean方法，可以从容器中获取指定类型的实例对象。
+
+关于容器，我们前面提及的一个类叫做ApplicationContext，是一个接口，但是它并不是最顶层接口，向上还有一个BeanFactory接口，那么该接口其实也是容器的实现。
+
+ApplicationContext继承自BeanFactory，BeanFactory其实就是最初的容器实现，ApplicationContext继承自它，又做了进一步的扩展。
+
+![image-20240513103936070](assets/image-20240513103936070.png)
+
+所以，BeanFactory具有的功能，ApplicationContext都具有，并且ApplicationContext还具有一些额外的扩展功能。
+
