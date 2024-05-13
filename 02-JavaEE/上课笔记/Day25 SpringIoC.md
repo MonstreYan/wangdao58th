@@ -463,3 +463,121 @@ ApplicationContext继承自BeanFactory，BeanFactory其实就是最初的容器�
 
 所以，BeanFactory具有的功能，ApplicationContext都具有，并且ApplicationContext还具有一些额外的扩展功能。
 
+问题：BeanFactory和FactoryBean之间有什么区别？？？
+
+其实二者没什么关系。BeanFactory强调的是factory，其实指的是容器；FactoryBean强调的是bean，其实是一种创建对象的方式。
+
+### 注解(掌握)
+
+使用注解来获取容器中的组件对象。
+
+最常用的注解便是**@Autowired注解**。背后的原理其实是spring会帮助我们在背后调用getBean方法，将获取到的组件对象，注入到当前的引用类型变量中。
+
+除此之外，还有一个注解也可以使用**@Resource注解**。
+
+
+
+
+
+## Spring整合Junit
+
+如果我们希望在进行单元测试用例的时候，可以直接利用注解来获取指定的实例对象，那么需要做以下的配置：
+
+0.导包。spring-test jar
+
+1.添加@RunWith注解
+
+2.添加@ContextConfiguration注解
+
+3.直接使用@Autowired注解来获取指定类型的实例对象即可
+
+```xml
+<properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.version>5.3.30</spring.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+```
+
+```java
+//spring整合junit的环境所必须要处理的步骤
+    //实例化容器
+@RunWith(SpringJUnit4ClassRunner.class)
+//用来进行读取配置类或者读取xml配置文件的，用于实例化容器
+//@ContextConfiguration(classes = {SpringConfig.class})
+//但是上述写法可以进一步优化，如果数组里面只有一个值，可以不用写大括号
+@ContextConfiguration(classes = SpringConfig.class)
+public class SpringTest2 {
+
+    //如果希望在某个类中可以直接通过autowired来获取容器中的对象，那么当前类对象也必须要交给spring来进行管理
+    @Autowired
+    UserService userService;
+
+
+    @Test
+    public void test1(){
+        System.out.println(userService);
+    }
+}
+```
+
+## 组件的生命周期
+
+提及生命周期，前面的课程中，对于Serlvet有介绍过，指的是Servlet从创建到销毁的整个过程阶段会触发的事件。
+
+对于组件的生命周期来说，也是差不多如此。
+
+指的是一个配置的组件对象从创建一直到可以使用的状态，最终到被销毁整个这个阶段所触发的事件。
+
+过程如下：
+
+1.容器启动。
+
+```java
+ApplicationContext context = new ClassPathXmlApplicationContext(xml);
+
+ApplicationContext context = new AnnotationConfigApplicationContext(配置类 class);
+```
+
+2.实例化Bean对象
+
+主要是借助于反射来进行对象的实例化。反射所需要的信息可以从xml配置文件中获取，也可以从配置类中获取。IoC的体现。
+
+
+
+3.设置对象的属性值
+
+这一步其实主要就是在维护对象和对象之间的关系。DI主要就是在这一步体现的。
+
+
+
+4.根据当前对象是否实现aware接口，去调用接口对应的方法
+
+spring会根据当前bean对象是否实现了那三个aware接口，调用对应的方法。这个操作最大的意义是什么呢？
+
+可以将容器的引用传递给当前的bean对象，所以容器的所有方法，在当前bean对象中都是可以使用到的。
+
+关于第4步骤，我们开发过程中，其实用的并不是特别多，但是很多框架的内部可能会用到，所以你需要知道它在干什么即可。
+
+
+
+
+
+
+
+
+

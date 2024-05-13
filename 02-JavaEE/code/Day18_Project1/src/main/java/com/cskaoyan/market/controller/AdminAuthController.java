@@ -28,7 +28,8 @@ import java.util.Map;
 @WebServlet("/admin/auth/*")
 public class AdminAuthController extends HttpServlet {
 
-    private MarketAdminService adminService = new MarketAdminServiceImpl();
+    //@Autowired
+    private MarketAdminService adminService;
 
 
     @Override
