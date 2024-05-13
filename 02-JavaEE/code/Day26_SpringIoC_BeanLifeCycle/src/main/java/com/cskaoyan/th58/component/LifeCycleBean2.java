@@ -11,6 +11,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @Author 远志 zhangsong@cskaoyan.onaliyun.com
  * @Date 2024/5/13 11:30
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Component;
  */
 //希望可以把当前类对象放入到spring容器中，应该怎么办？？？？？
 @Component
-public class LifeCycleBean implements BeanNameAware, BeanFactoryAware, ApplicationContextAware, InitializingBean {
+public class LifeCycleBean2 {
 
     //需要用到userService的功能，如何引入userService呢？从容器中获取userService对象
    // @Autowired
@@ -37,33 +39,15 @@ public class LifeCycleBean implements BeanNameAware, BeanFactoryAware, Applicati
 
     private String beanName;
 
-    public LifeCycleBean() {
+    public LifeCycleBean2() {
 //        System.out.println("调用了LifeCycleBean无参构造函数实例化对象");
     }
 
-    //可以把容器的引用传递进来，传给当前的bean对象；所以bean对象内部持有了容器的引用
-    //当我们实现了该接口（spring怎么知道你有没有实现该接口？？？if(object instanceof BeanNameAware)），那么spring容器便会调用对应的方法
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-//        System.out.println("调用了setBeanFactory：" + beanFactory);
-        this.beanFactory = beanFactory;
-    }
-
-    @Override
-    public void setBeanName(String s) {
-//        System.out.println("调用了setBeanName：" + s);
-        this.beanName = s;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-//        System.out.println("调用了setApplicationContext：" + applicationContext);
-        this.context = applicationContext;
-    }
 
     //还有一种自定义init的方式，我们可以不用实现InitializingBean接口，只需要去实现自定义的init方法即可
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        System.out.println("Initializing Bean...初始化的业务逻辑");
+    //1.导包：javax.annotation  2.添加该注解  spring会帮助我们调用包含该注解的方法
+    @PostConstruct
+    public void myinit(){
+        System.out.println("my init");
     }
 }

@@ -575,6 +575,128 @@ spring会根据当前bean对象是否实现了那三个aware接口，调用对�
 
 
 
+5.BeanPostProcessor对bean对象进行处理
+
+如果需要演示该功能，那么我们需要自己创建一个BeanPostProcessor来进行验证。**BeanPostProcessor的功能非常类似于拦截器的功能，会对所有创建出来的bean对象进行处理，处理过后才会放入到Spring容器中，所以便有了可以操作的空间。在处理之前是委托类对象，但是处理过后放入容器中的便是代理类对象。**
+
+```java
+/**
+ * @Author 远志 zhangsong@cskaoyan.onaliyun.com
+ * @Date 2024/5/13 14:39
+ * @Version 1.0
+ * beanPostProcessor的功能非常像filter的功能，可以针对创建出来的其他的bean对象进行前置和后置处理
+ * 至于究竟应该吧代码逻辑写在前置还是后置中，取决于你的bean对象有没有init逻辑，如果有init逻辑，并且处理的逻辑也要求和init有关，那么必须得使用后置
+ */
+@Component
+public class MyBeanPostProcessor implements BeanPostProcessor {
+
+    //前置处理
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        System.out.println(bean + "====" + beanName);
+        //狸猫换太子，也就是说在进行前置处理之前呢，是委托类对象，经过处理之后变成了代理类对象，继续向后传递
+        //这个便是AOP的理论基石
+        return bean;
+    }
+
+    //后置处理
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
+}
+```
+
+
+
+6.init阶段
+
+类似于servlet的init方法。但是要比servlet的init要复杂一些。
+
+会根据当前的bean对象是否实现了InitializingBean接口，调用对应的方法；或者实现了自定义的init方法，调用对应的自定义init方法，可以去做一些初始化的业务逻辑。
+
+```java
+@Component
+public class LifeCycleBean implements InitializingBean {
+
+    //需要用到userService的功能，如何引入userService呢？从容器中获取userService对象
+   // @Autowired
+    UserService userService;
+
+    //在开发过程中，其实没必要这么去写，直接给属性写@Autowired即可，这里面只是为了给大家做一个演示，能够看到过程
+    @Autowired
+    public void setUserService(UserService userService) {
+//        System.out.println("调用了setUserService设置属性值");
+        this.userService = userService;
+    }
+
+    private ApplicationContext context;
+
+    private BeanFactory beanFactory;
+
+    private String beanName;
+
+    public LifeCycleBean() {
+//        System.out.println("调用了LifeCycleBean无参构造函数实例化对象");
+    }
+
+
+    //还有一种自定义init的方式，我们可以不用实现InitializingBean接口，只需要去实现自定义的init方法即可
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("Initializing Bean...初始化的业务逻辑");
+    }
+}
+
+```
+
+
+
+
+
+```java
+@Component
+public class LifeCycleBean2 {
+
+    //需要用到userService的功能，如何引入userService呢？从容器中获取userService对象
+   // @Autowired
+    UserService userService;
+
+    //在开发过程中，其实没必要这么去写，直接给属性写@Autowired即可，这里面只是为了给大家做一个演示，能够看到过程
+    @Autowired
+    public void setUserService(UserService userService) {
+//        System.out.println("调用了setUserService设置属性值");
+        this.userService = userService;
+    }
+
+    private ApplicationContext context;
+
+    private BeanFactory beanFactory;
+
+    private String beanName;
+
+    public LifeCycleBean2() {
+//        System.out.println("调用了LifeCycleBean无参构造函数实例化对象");
+    }
+    
+
+    //还有一种自定义init的方式，我们可以不用实现InitializingBean接口，只需要去实现自定义的init方法即可
+    //1.导包：javax.annotation  2.添加该注解  spring会帮助我们调用包含该注解的方法
+    @PostConstruct
+    public void myinit(){
+        System.out.println("my init");
+    }
+}
+```
+
+init阶段完成之后，再次经过beanPostsProcessor后置处理，处理过后便放入到spring容器中，便是可使用的状态了。
+
+![image-20240513150712244](assets/image-20240513150712244.png)
+
+## 案例
+
+要求：将之前的mapper优化案例整合到spring中
+
 
 
 
