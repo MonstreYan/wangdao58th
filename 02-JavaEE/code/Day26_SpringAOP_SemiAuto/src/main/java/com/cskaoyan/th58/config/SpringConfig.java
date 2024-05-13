@@ -1,5 +1,6 @@
 package com.cskaoyan.th58.config;
 
+import com.cskaoyan.th58.service.GoodsService;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,12 +20,14 @@ public class SpringConfig {
     //因为ProxyFactoryBean实现了FactoryBean接口，所以注册到容器中，利用编号取出来的是getObject返回值，通过查看方法说明可以得知，返回的是一个proxy代理类对象
     //现在我需要对GoodsServiceImpl进行增强，所以需要借助于ProxyFactoryBean对于GoodsServiceImpl进行处理，产生代理类对象
     @Bean
-    public ProxyFactoryBean proxyFactoryBean(){
+    public ProxyFactoryBean goodsServiceProxy(GoodsService goodsService){
         ProxyFactoryBean bean = new ProxyFactoryBean();
-        //设置委托类
-        bean.setTarget();
+        //设置委托类 GoodsService
+        bean.setTarget(goodsService);
         //通知：何种增强-----日志打印
-        bean.setInterceptorNames();
+        //这里面直接设置通知类的编号即可关联在一起，为什么？？？？
+        //因为ProxyFactoryBean实现了FactoryBean接口，内部持有容器的引用，可以利用容器.getBean(id)来获取指定的对象
+        bean.setInterceptorNames("logAdvice");
         return bean;
     }
 }

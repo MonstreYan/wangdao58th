@@ -79,17 +79,194 @@ AOP Proxy：代理类对象。
 
 
 
-## 入门案例
+## 入门案例(熟悉)
 
 入门案例，我们将会介绍一种半自动的方式给大家入门。
 
 使用半自动的AOP方式，需要向容器中去注册一个ProxyFactoryBean对象。
 
+1.编写一个通知类，需要实现MethodInterceptor接口，实现里面的方法，里面的方法形参其实就是对于method.invoke的进一步封装调用;同时注册为Spring容器中的组件对象
+
+```java
+@Component
+public class LogAdvice implements MethodInterceptor {
+    @Override
+    public Object invoke(MethodInvocation invocation) throws Throwable {
+
+//        MethodInvocation你可以理解为就是对于动态代理设计模式中的method的进一步封装
+        //下面这行代码就是对于method.invoke()又做了进一层的封装，原理和之前是完全等价的 委托类方法的调用
+        System.out.println("log before");
+        Object proceed = invocation.proceed();
+        System.out.println("log after");
+        return proceed;
+    }
+}
+```
+
+
+
+2.向容器中去注册ProxyFactoryBean对象，用于关联委托类对象和通知，产生代理类对象
+
+```java
+@Configuration
+@ComponentScan("com.cskaoyan.th58")
+public class SpringConfig {
+
+    //写@Bean注解的方式
+    //需要关注一下这类有没有实现FactoryBean接口，如果实现了该接口，那么直接取出来的并不是该对象本身，而是getObject方法的返回值
+    //因为ProxyFactoryBean实现了FactoryBean接口，所以注册到容器中，利用编号取出来的是getObject返回值，通过查看方法说明可以得知，返回的是一个proxy代理类对象
+    //现在我需要对GoodsServiceImpl进行增强，所以需要借助于ProxyFactoryBean对于GoodsServiceImpl进行处理，产生代理类对象
+    @Bean
+    public ProxyFactoryBean goodsServiceProxy(GoodsService goodsService){
+        ProxyFactoryBean bean = new ProxyFactoryBean();
+        //设置委托类 GoodsService
+        bean.setTarget(goodsService);
+        //通知：何种增强-----日志打印
+        //这里面直接设置通知类的编号即可关联在一起，为什么？？？？
+        //因为ProxyFactoryBean实现了FactoryBean接口，内部持有容器的引用，可以利用容器.getBean(id)来获取指定的对象
+        bean.setInterceptorNames("logAdvice");
+        return bean;
+    }
+}
+
+```
+
+
+
+3.直接从容器中取出代理类对象使用即可，需要使用@Qualifier注解
+
+```jaVA
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfig.class)
+public class AOPTest {
+
+    @Autowired
+    @Qualifier("goodsServiceProxy")
+    GoodsService goodsService;
+
+    @Test
+    public void test1(){
+        goodsService.addOne();
+    }
+}
+
+```
 
 
 
 
 
+
+
+
+
+```
+NoUniqueBeanDefinitionException: No qualifying bean of type 'com.cskaoyan.th58.service.GoodsService' available:expected single matching bean but found 2: goodsServiceImpl,goodsServiceProxy
+```
+
+总结：比较一下半自动的方式相较于之前的动态代理有哪些改进，以及此时存在哪些不足之处？？？？
+
+之前的动态代理，我们的不同的增强通知都是堆积在ProxyUtils工具类中的；耦合性有些高。
+
+使用半自动的方式时，通知是一个一个单独彼此独立存在的；借助于ProxyFactoryBean对象，将委托类和通知关联在一起，产生代理类对象。
+
+此时有哪些不足呢？？？？此时是将委托类对象和通知类对象产生关联，并不是将方法和通知方法产生关联，因为在一个类的内部，可能增强的逻辑也是不同的。
+
+
+
+## AOP全自动
+
+实际上，如果我们希望使用全自动的方式，那么需要借助于一个第三方的jar包类库aspectj框架。
+
+aspectj提供的全自动的aop解决方案，一共有两种方案：
+
+1.一种是基于advisor的方案，没有提供配置类的方式，所以我们就直接放弃。
+
+2,另外一种是基于aspect的方案(课程介绍的是这种方案)
+
+aspectj框架是可以实现业务方法和通知方法的关联的。这里面是如何产生关联的呢？
+
+切入点提供了两种方案：
+
+1.切入点表达式execution：相当于一套规则，利用这个规则去匹配对应的连接点方法。
+
+2.自定义注解：编写一个自定义注解，只要连接点方法上面标注了该注解，那么便建立了联系。
+
+
+
+### execution
+
+1.导包，导入aspectj依赖
+
+2.编写一个切面类，标注@Component注解以及@Aspect注解
+
+3.在当前切面类中编写一个方法，方法的修饰符public，返回值void，标注@Pointcut注解，里面设置value属性，value属性里面编写execution的语法
+
+4.编写方法，方法修饰符public，返回值暂时没有要求，返回void即可，标注@Before等注解，表示的是前置通知；@Before注解里面需要填写value值，需要关联切入点的编号
+
+5.配置类的头上标注@EnableAspectJAutoProxy注解，表示的是开启spring对于aspectj支持的开关。
+
+
+
+```
+execution(修饰符匹配? 返回值匹配 类路径匹配? 方法名匹配(参数匹配) 异常类型匹配?)
+其中?表示该选项是可选的
+```
+
+![image-20240513174753685](assets/image-20240513174753685.png)
+
+配置类，需要开启对于aspectj的支持
+
+```java
+@Configuration
+@ComponentScan("com.cskaoyan.th58")
+//开启对于aspectj的支持 开关打开
+@EnableAspectJAutoProxy
+public class SpringConfig {
+}
+```
+
+委托类对象，只需要增强add方法
+
+```java
+@Service
+public class GoodsServiceImpl implements GoodsService{
+    @Override
+    public void addOne() {
+        System.out.println("goods service addOne");
+    }
+
+    @Override
+    public void selectOne() {
+        System.out.println("goods service selectOne");
+    }
+}
+```
+
+切面= 切入点 + 通知
+
+```java
+//注册为spring容器中的一个组件
+@Component
+//编写的是一个切面，所以需要额外添加一个aspect注解
+@Aspect
+public class LogAspect {
+    //切面 = 切入点(匹配连接点的过程 execution) + 通知(增强)
+
+
+    //新建一个空的方法，修饰符public，返回值void
+    //这里面只会去取当前方法的名称作为当前切入点的编号 ------GoodsServiceImpl.addOne ------beforeAdvice
+    @Pointcut("execution(* com.cskaoyan..service.*ServiceImpl.add*(..))")
+    public void pt1(){}
+
+
+    //before注解就表示的是当前是一个前置通知
+    @Before("pt1()")
+    public void beforeAdvice(){
+        System.out.println("前置通知");
+    }
+}
+```
 
 
 

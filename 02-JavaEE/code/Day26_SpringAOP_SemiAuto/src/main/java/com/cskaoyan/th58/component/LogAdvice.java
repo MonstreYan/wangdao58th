@@ -16,6 +16,7 @@ public class LogAdvice implements MethodInterceptor {
 
 //        MethodInvocation你可以理解为就是对于动态代理设计模式中的method的进一步封装
         //下面这行代码就是对于method.invoke()又做了进一层的封装，原理和之前是完全等价的 委托类方法的调用
+        //此时存在的不足在于如果只想对于某些方法进行增强，那么依然需要分发
         System.out.println("log before");
         Object proceed = invocation.proceed();
         System.out.println("log after");

@@ -697,9 +697,99 @@ init阶段完成之后，再次经过beanPostsProcessor后置处理，处理过�
 
 要求：将之前的mapper优化案例整合到spring中
 
+委托类
+
+```java
+//需要对service实现类进行增强处理；需要再执行方法执行获取sesion，执行完方法之后session提交、关闭；还需要给mapper成员变量进行赋值
+    //此时暂时不可以对成员变量使用@Autowired
+@Service
+public class UserServiceImpl implements UserService{
+
+    UserMapper userMapper;
+
+    @Override
+    public void addUser(User user) {
+        userMapper.insertOne(user);
+    }
+
+    @Override
+    public User getUserById(Integer id) {
+        return userMapper.selectOne(id);
+    }
+}
+```
 
 
 
+增强逻辑：
+
+```java
+public class ProxyUtils {
+
+    public static Object getProxy(Object target){
+        Class<?> targetClass = target.getClass();
+        return Proxy.newProxyInstance(targetClass.getClassLoader(), targetClass.getInterfaces(), new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+                //代理类对象的方法调用时，都会调用invocationHandler.invoke方法
+                //所以我们需要做的事情便是进一步去调用委托类的方法
+                String methodName = method.getName();
+//                if(methodName.equals("xxx")){
+//                    enhancer1();
+//                }else if(methodName.equals("yyy")){
+//                    enhancer2();
+//                }
+                SqlSession sqlSession = MybatisUtils.getSqlSession();
+                //应该给mapper去赋值
+                //需要拿到当前委托类的成员变量
+                Field[] fields = targetClass.getDeclaredFields();
+                for (Field field : fields) {
+                    if(field.getName().endsWith("Mapper")){
+                        //认为它是一个mapper
+                        field.setAccessible(true);
+                        Object mapper = sqlSession.getMapper(field.getType());
+                        //赋值
+                        field.set(target, mapper);
+                    }
+                }
+
+                Object invoke = method.invoke(target, args);
+
+                sqlSession.commit();
+                sqlSession.close();
+                return invoke;
+            }
+        });
+    }
+}
+```
+
+
+
+
+
+借助于beanPostProcessor将代理类对象放入容器中
+
+```java
+@Component
+public class ServiceEnhancerProcessor implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        //针对userServiceImpl进行增强
+        if(beanName.endsWith("ServiceImpl")){
+            //对其进行增强
+           bean = ProxyUtils.getProxy(bean);
+        }
+        return bean;
+    }
+}
+```
+
+
+
+其他代码部分同之前的作业。
 
 
 
