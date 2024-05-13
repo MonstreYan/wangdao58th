@@ -22,6 +22,12 @@ public class ProxyUtils {
 
                 //代理类对象的方法调用时，都会调用invocationHandler.invoke方法
                 //所以我们需要做的事情便是进一步去调用委托类的方法
+                String methodName = method.getName();
+//                if(methodName.equals("xxx")){
+//                    enhancer1();
+//                }else if(methodName.equals("yyy")){
+//                    enhancer2();
+//                }
                 SqlSession sqlSession = MybatisUtils.getSqlSession();
                 //应该给mapper去赋值
                 //需要拿到当前委托类的成员变量
