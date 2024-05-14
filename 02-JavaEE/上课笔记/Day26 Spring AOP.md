@@ -547,6 +547,14 @@ public class LogAspect {
 
 原理便是在运行期间，内存中生成字节码的一种技术。
 
+2.随后将动态代理技术和Spring加以整合，需要使用到BeanPostProcessor来对创建出来的bean对象进行处理，处理过后的代理类对象放入到spring容器中，此时并没有明显的改进，只是做到代理和Spring加以整合。
+
+3.引入了AOP半自动的方式。半自动的方式相较于之前的改进在于：1.此时无需编写BeanPostProcessor;2.通知是单独的一个一个类存在的，没有在ProxyUtils工具类中进行分发；此时依然存在的问题：如果一个委托类中只有部分方法需要增强，那么此时指定不是特别灵活。
+
+4.引入了AOP全自动的方式。需要借助于AspectJ框架。需要用到一个Pointcut，里面需要编写切入点表达式(可以是execution、@annotation)，另外一部分还需要和通知进行关联。所以最终借助于Pointcut，可以实现通知和业务方法的关联。随后Spring会在运行期间，产生代理类对象。
+
+
+
 > Maven父子工程
 >
 > 1.新建一个maven项目，将src目录删除，只保留pom.xml文件即可，这个作为父工程，作用就是用来去管理依赖
@@ -558,6 +566,114 @@ public class LogAspect {
 > 4.此时查看子工程的pom.xml文件，会多出来一个parent标签
 >
 > 5.此时再去查看父工程的pom.xml文件，会多出来modules标签
+
+
+
+
+
+## Spring整合Mybatis
+
+Spring作为一个bean的容器，希望能够将所有的功能性组件全部放入到spring容器中进行管理。这个也就是IoC容器。
+
+想一下，之前学习mybatis时，接触到了哪些对象？？？？
+
+SqlSessionFactory、各种Mapper接口实现类对象，希望可以将这些对象放入到spring容器中
+
+
+
+1.将SqlSessionFactory放入Spring容器中。（后续整合了spring之后，无需自己再去编写MybatisUtils工具类了）
+
+因为考虑到SqlSessionFactory是一个interface，所以开发人员不太容易去处理，需要mybatis的官方对于spring提供支持。也就此时需要额外导入一个jar包，叫做mybatis-spring，该jar包里面提供了一个SqlSessionFactoryBean对象
+
+
+
+
+
+2.需要向容器中去注册一个mapperScannerConfigurer组件对象，可以扫描mapper包目录，创建对应的mapper实例对象，并且将其放入到spring容器中。随后，我们在service业务层中，可以直接通过@Autowired取出mapper实例对象
+
+配置类：
+
+```java
+@Configuration
+//因为我们自己编写了service组件，也需要放入到spring容器中，所以需要配置这一行注解
+@ComponentScan("com.cskaoyan.th58")
+public class SpringConfig {
+
+    //向容器中注册了一个DataSource对象 数据源
+    @Bean
+    public DataSource dataSource(){
+        DruidDataSource druidDataSource = new DruidDataSource();
+        //关于这部分配置信息，应当写入到配置文件中，但是考虑到spring的配置文件和springboot略有一些差异
+        //为了减轻大家的负担，并且后续使用springboot更为多一些，所以我们先不去放置到配置文件中
+        druidDataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        druidDataSource.setUrl("jdbc:mysql://localhost:3306/tx?characterEncoding=utf-8&useSSL=false");
+        druidDataSource.setUsername("root");
+        druidDataSource.setPassword("123456");
+        return druidDataSource;
+    }
+
+    //向容器中去注册当前对象，利用编号取出来的就是SqlSessionFactory；mybatis官方提供的支持
+    //使用这种方式的时候，有没有使用mybatis.xml文件？？？没有，需要提供数据库的连接信息
+    //所以，我们需要提供数据源信息------》 进一步向容器中去注册一个数据源对象
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource){
+        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        factoryBean.setDataSource(dataSource);
+        return factoryBean;
+    }
+
+
+    //还需要去向容器中去注册一个MapperScannerConfigurer组件
+    //这个组件的主要功能是会设定扫描包目录，然后创建对应的mapper实例对象，并且把创建好的mapper实例对象放入到spring容器中
+    //那么我们便可以直接使用@Autowired取出来
+    @Bean
+    public MapperScannerConfigurer mapperScannerConfigurer(){
+        MapperScannerConfigurer configurer = new MapperScannerConfigurer();
+        //设定扫描的包目录
+        configurer.setBasePackage("com.cskaoyan.th58.mapper");
+        //还需要去关联sqlSessionFactory；因为sqlSessionFactory mybatis的核心组件，其他的功能都需要借助于该对象展开
+
+        //此处直接去写编号即可，为什么可以通过写编号就可以关联？？？？
+        configurer.setSqlSessionFactoryBeanName("sqlSessionFactory");
+        return configurer;
+    }
+}
+```
+
+Service业务类：
+
+```java
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Autowired
+    UserMapper userMapper;
+
+
+    @Override
+    public User getUserById(int id) {
+        //先获取session   session.getMapper     session.commit()/close()
+        //spring整合mybatis之后，会自动进行增强处理，我们无需编写上述代码逻辑
+        return userMapper.selectOne(id);
+    }
+
+    @Override
+    public void addUser(User user) {
+        //关于事务的提交、关闭这些代码无需我们进行处理，会自动进行增强代理 AOP
+        userMapper.insertOne(user);
+    }
+}
+```
+
+
+
+但是如果此时，进行转账案例，那么会发现：存在一些小问题。
+
+
+
+## SpringTX
+
+
 
 
 
