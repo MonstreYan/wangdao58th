@@ -429,7 +429,135 @@ public class LogAspect {
 }
 ```
 
-注意：不需要去记住前置通知和环绕通知前顺序哪个在前、哪个在后，没有意义。你需要记住的是这些通知和委托类的方法之间的顺序。
+注意：
+
+1.不需要去记住前置通知和环绕通知前顺序哪个在前、哪个在后，没有意义。你需要记住的是这些通知和委托类的方法之间的顺序。
+
+2.关于除了环绕通知之外的其他通知，如果希望能够在通知中获取委托类方法的信息，那么可以直接在通知方法的形参中写一个JoinPoint即可，如果有多个 参数，那么JoinPoint必须要求在第一位。
+
+```java
+@Before("pt1()")
+    public void beforeAdvice(JoinPoint joinPoint){
+        //获取委托类信息
+        Object target = joinPoint.getTarget();
+        //获取的是代理类对象信息
+        Object aThis = joinPoint.getThis();
+        //签名-----需要获取方法的信息，进行向下转型，转换成方法签名
+        Signature signature = joinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        String name = methodSignature.getName();
+
+        System.out.println("这是一个前置通知");
+    }
+```
+
+
+
+
+
+## 面向注解编程思想
+
+业务类方法上面标注对应的注解，注解里面写上对应的值。
+
+```java
+@Service
+public class MarketAdminServiceImpl implements MarketAdminService{
+
+    //项目二再去写这个接口，只需要面向接口编程即可
+    @Log(type = "安全操作", action = "登录")
+    @Override
+    public MarketAdmin login(String username, String password) {
+
+
+        return null;
+    }
+
+    /*public MarketAdmin login() {
+
+
+        return null;
+    }*/
+
+
+    @Log(type = "安全操作", action = "注销")
+    @Override
+    public void logout() {
+
+    }
+}
+
+```
+
+
+
+在切面中，获取这些注解中的属性值
+
+```java
+@Component
+@Aspect
+public class LogAspect {
+
+    //spring会自动帮你进入注入
+    @Autowired
+    LogService logService;
+
+    @Pointcut("@annotation(com.cskaoyan.th58.annotation.Log)")
+    public void pt(){}
+
+
+    //接收结果通知
+    @AfterReturning(value = "pt()", returning = "result")
+    public void result(JoinPoint joinPoint, Object result){
+        //获取当前方法上面的Log注解里面的type以及action的值
+        //如何获取注解里面的值呢？借助于反射 Class
+
+        //拿到委托类对象
+        Object target = joinPoint.getTarget();
+        //获取委托类对象对应的Class对象信息
+        Class<?> targetClass = target.getClass();
+
+        //joinPoint就是对于当前运行的方法的封装体，里面会包含方法的信息
+        Signature signature = joinPoint.getSignature();
+        String methodName = signature.getName();
+        //因为目前我们这是一个方法，所以可以强转成MethodSignature
+        MethodSignature methodSignature = (MethodSignature) signature;
+
+        Class<?>[] parameterTypes = methodSignature.getMethod().getParameterTypes();
+        //拿到方法:java语言里面允许方法同名，定位一个方法不仅需要方法的名称，还需要参数签名，也就是参数类型
+        Method method = null;
+        try {
+            method = targetClass.getMethod(methodName, parameterTypes);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+        Log log = method.getAnnotation(Log.class);
+        String type = log.type();
+        String action = log.action();
+        System.out.println(type + ":" + action);
+        logService.addLog();
+    }
+}
+```
+
+
+
+## AOP演进过程
+
+1.最开始的时候，我们引入了动态代理设计模式(代理设计模式--------> 静态代理---------> 动态代理设计模式)
+
+原理便是在运行期间，内存中生成字节码的一种技术。
+
+> Maven父子工程
+>
+> 1.新建一个maven项目，将src目录删除，只保留pom.xml文件即可，这个作为父工程，作用就是用来去管理依赖
+>
+> 2.新建子工程(选中父工程，new module)，子工程可以继承得到父工程的依赖信息，这样就无需反复去导入依赖了
+>
+> 3.除了maven父子工程之外，其他的项目不应该会存在嵌套关系。
+>
+> 4.此时查看子工程的pom.xml文件，会多出来一个parent标签
+>
+> 5.此时再去查看父工程的pom.xml文件，会多出来modules标签
 
 
 

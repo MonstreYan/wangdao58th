@@ -71,6 +71,7 @@ public class AdminAuthController extends HttpServlet {
         //返回一个MarketAdmin对象比较合适
         MarketAdmin marketAdmin = adminService.login(username, password);
         if(marketAdmin == null){
+            //todo  记录用户登录失败 logService.addLog();
             //用户名、密码错误    {"errno":605,"errmsg":"用户帐号或密码不正确"}
             //状态码每个小组可以自定义，前端只会去判断是否为0，如果不为0，那么便是出错；至于具体的数字只是为了调用者可以很方便的地排查故障
             Object fail = ResponseUtil.fail(605, "用户名或者密码不正确");
@@ -78,6 +79,7 @@ public class AdminAuthController extends HttpServlet {
             resp.getWriter().println(jsonStr);
             return;
         }
+        //todo 记录用户登录成功 logService.addLog()
         //用户名、密码匹配------做到和公网具有相同的返回结果
         //设置响应体 字符流  字节流
         Map<String, Object> data = new HashMap<>();

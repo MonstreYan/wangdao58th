@@ -26,6 +26,7 @@ public class MarketAdminServiceImpl implements MarketAdminService {
         criteria.andUsernameEqualTo(username);
         criteria.andPasswordEqualTo(password);
         MarketAdmin marketAdmin = marketAdminMapper.selectOneByExample(marketAdminExample);
+        //todo  判断是否为null， logService.addLog
         session.commit();
         session.close();
         return marketAdmin;

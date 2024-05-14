@@ -1,7 +1,10 @@
 package com.cskaoyan.th58.aspect;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,7 +25,16 @@ public class LogAspect {
 
     //通知 前置通知
     @Before("pt1()")
-    public void beforeAdvice(){
+    public void beforeAdvice(JoinPoint joinPoint){
+        //获取委托类信息
+        Object target = joinPoint.getTarget();
+        //获取的是代理类对象信息
+        Object aThis = joinPoint.getThis();
+        //签名-----需要获取方法的信息，进行向下转型，转换成方法签名
+        Signature signature = joinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        String name = methodSignature.getName();
+
         System.out.println("这是一个前置通知");
     }
 
