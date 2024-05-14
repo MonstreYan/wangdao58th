@@ -194,7 +194,7 @@ aspectj框架是可以实现业务方法和通知方法的关联的。这里面�
 
 
 
-### execution
+### execution(掌握)
 
 1.导包，导入aspectj依赖
 
@@ -267,6 +267,171 @@ public class LogAspect {
     }
 }
 ```
+
+
+
+### @annotation(掌握)
+
+使用切入点表达式来匹配业务方法，除了可以使用上述的execution之外，还可以去自定义一个注解，只要业务方法上面标注了该注解，那么便表示关联了当前业务方法。
+
+这两种方式的区别在哪？？？？？
+
+execution：进行大范围的匹配，能够匹配一系列的具有某些特征的方法。
+
+@annotation：进行小范围的精准匹配。如果业务方法没有明显的特征，可以使用这种方案。
+
+自定义一个注解：
+
+```java
+//注解需要一些元数据：1.注解可以写在哪些上面：类、方法、成员变量；2保留期：源码、class存在、运行时存在
+    //表示的是当前注解可以写在方法的上面
+@Target(ElementType.METHOD)
+//运行时依然保留存在，只有设置runtime，那么才可以发挥功能  java------class--------运行(RUNTIME)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Log {
+}
+```
+
+
+
+在切面类中进行配置：
+
+```java
+@Component
+@Aspect
+public class LogAspect {
+
+
+    //切入点 ----表达式关联的是一个自定义注解，只要哪个业务方法上面标注了该注解，那么便关联了当前的业务方法
+    @Pointcut("@annotation(com.cskaoyan.th58.annotation.Log)")
+    public void pt1(){}
+
+    //通知通过切入点编号关联了切入点，进一步关联了业务方法
+    @Before("pt1()")
+    public void beforeAdvice(){
+        System.out.println("这是一个前置通知");
+    }
+}
+```
+
+
+
+
+
+业务代码中需要增强的方法上面添加注解即可
+
+```java
+@Service
+public class GoodsServiceImpl implements GoodsService{
+    //对于当前方法进行增强
+    @Log
+    @Override
+    public void addOne() {
+        System.out.println("goods service addOne");
+    }
+
+    @Override
+    public void selectOne() {
+        System.out.println("goods service selectOne");
+    }
+}
+
+```
+
+```java
+@Service
+public class UserServiceImpl implements UserService{
+    @Log
+    @Override
+    public void addOne() {
+        System.out.println("userServiceImpl addOne");
+    }
+
+    @Override
+    public void selectOne() {
+        System.out.println("userServiceImpl selectOne");
+    }
+}
+```
+
+
+
+### 通知类型(掌握)
+
+在Spring中有如下的通知(增强)类型：
+
+前置通知：业务方法执行之前触发的增强逻辑
+
+后置通知：业务方法执行之后触发的增强逻辑
+
+环绕通知：业务方法的执行前后都会触发的增强逻辑
+
+异常通知：业务方法执行产生异常时会触发得到逻辑
+
+结果通知：业务方法正常执行完毕，返回的结果
+
+
+
+切面： 切入点  + 通知（各种不同的通知类型）
+
+```java
+@Component
+@Aspect
+public class LogAspect {
+
+    @Pointcut("@annotation(com.cskaoyan.th58.annotation.Log)")
+    public void pt1(){}
+
+
+    //说明：在开发过程中，没有场景需要把所有的通知都写一遍，我们这里面是给大家做演示
+    //大家在开发过程中，需要选择一个合适的通知类型
+
+    //通知 前置通知
+    @Before("pt1()")
+    public void beforeAdvice(){
+        System.out.println("这是一个前置通知");
+    }
+
+    //后置通知
+    @After("pt1()")
+    public void afterAdvice(){
+        System.out.println("这是一个后置通知");
+    }
+
+    //环绕通知比较特殊：返回值结果不可以是void，必须是object
+    //对于混绕通知来说，需要去调用委托类的方法，必须要传递一个形参ProceedingJoinPoint
+    @Around("pt1()")
+    public Object aroundAdvice(ProceedingJoinPoint joinPoint){
+        System.out.println("这是环绕通知前");
+        //调用委托类的方法
+        Object proceed = null;
+        try {
+            proceed = joinPoint.proceed();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("这是环绕通知后");
+        return proceed;
+    }
+
+    //异常通知
+    //当发生异常时，会把异常的信息，赋值给当前的通知中的形参exp
+    @AfterThrowing(value = "pt1()",throwing = "exp")
+    public void expAdvice(Exception exp){
+        System.out.println("异常通知" + exp);
+    }
+
+    //返回结果通知:会把委托类方法的运行结果赋值给当前通知的形参result
+    @AfterReturning(value = "pt1()", returning = "result")
+    public void resultAdvice(Object result){
+        System.out.println("接收结果通知：" + result);
+    }
+}
+```
+
+注意：不需要去记住前置通知和环绕通知前顺序哪个在前、哪个在后，没有意义。你需要记住的是这些通知和委托类的方法之间的顺序。
+
+
 
 
 
