@@ -673,9 +673,218 @@ public class UserServiceImpl implements UserService {
 
 ## SpringTX
 
+在Spring中，使用平台事务管理器对象来进行事务的管理。
+
+### PlatformTransactionManager
+
+这里面提及了两个额外的对象：
+
+TransactionDefinition：事务的定义对象。比如定义隔离级别、超时时间等信息。
+
+TransactionStatus：事务的状态对象。比如事务是否是只读等。
+
+下面还有两个方法，一个是commit，用来进行提交事务；一个是rollback用来进行回滚事务。
+
+在提交事务以及回滚事务时，需要传递一个形参叫做TransactionStatus，这个对象应该如何获取？？？？
+
+我们根据第一个方法getTransaction，只需要传递进来一个TransactionDefinition，那么便可以得到一个TransactionStatus。
+
+总结：
+
+**归根结底，我们想要在Spring中进行事务的管理，那么需要提供如下两个对象：**
+
+**1.平台事务管理器的实现类对象PlatformTransactionManager实现类对象**
+
+**2.事务定义对象TransactionDefinition实现类对象**
+
+```java
+public interface PlatformTransactionManager extends TransactionManager {
+
+	TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException;
+
+	void commit(TransactionStatus status) throws TransactionException;
+
+	void rollback(TransactionStatus status) throws TransactionException;
+
+}
+
+```
+
+### TransactionDefinition
+
+事务定义对象里面提供了一系列的关于事务的定义信息。其中spring针对事务提出了一个新的概念，叫做事务的传播行为。
+
+事务的传播行为：是指的是多个事务之间如何共享事务。通俗的来说就是多个事务所属的方法之间存在着调用关系，当发生异常时，哪些方法应该提交，哪些方法应该回滚。按照事务原本的定义来说，应该都遵循着同时成功，同时失败。但是Spring认真这种方式可能太过于绝对了，有的场景可能不需要这么去做。比如注册成功之后，发放新人优惠券， 但是优惠券发放失败了，此时需要进行全部回滚吗？？？在这个场景下，其实可以不用回滚。
+
+如果method1调用了method2，那么method1就称之为外部，method2称之为内部。
+
+- **REQUIRED**：默认的传播行为，使用最为广泛。如果外部不包含事务，则内部新增一个新的事务。如果外部包含事务，则加入到该事务中来。**该行为的特征是要么全部提交，要么全部回滚。**
+- **REQUIRES_NEW**：如果外部不包含事务，则内部新增一个新的事务。如果外部包含事务，则内部新增一个新的事务。**该行为的特征是内部可以影响外部，但是外部不会影响内部。**也就是说method2发生异常，会导致全部都回滚；但是如果method1发生异常，仅method1回滚，method2提交事务。
+- **NESTED**：如果外部不包含事务，则内部新增一个新的事务。如果外部包含事务，则以嵌套的方式运行。**该行为的特征是内部不会影响外部，但是外部可以影响内部。**该场景的一个典型案例就是注册网站成功之后，会发放新人优惠券。注册失败，肯定不会发放优惠券；但是发放优惠券失败，肯定不会导致新账号注册失败。
+- 但是，在真实的开发过程中，其实我们并不是在很多场景下真正地去用它。但是，面试的时候，可能作为一个面试的知识点来加以提问。所以针对上述部分的内容，大家需要简单了解，面试的时候可以说几句。
+
+```java
+public interface TransactionDefinition {
+
+	int PROPAGATION_REQUIRED = 0;
+
+	 
+	int PROPAGATION_SUPPORTS = 1;
+
+	
+	int PROPAGATION_MANDATORY = 2;
+
+	
+	int PROPAGATION_REQUIRES_NEW = 3;
+
+	
+	int PROPAGATION_NOT_SUPPORTED = 4;
+
+	
+	int PROPAGATION_NEVER = 5;
+
+	
+	int PROPAGATION_NESTED = 6;
+
+
+	//默认是-1表示的是使用的是数据库的默认隔离级别，如果使用的是mysql，在没有设置的情况下，是repeatable read
+	int ISOLATION_DEFAULT = -1;
+
+	
+	int ISOLATION_READ_UNCOMMITTED = 1;  // same as java.sql.Connection.TRANSACTION_READ_UNCOMMITTED;
+
+	
+	int ISOLATION_READ_COMMITTED = 2;  // same as java.sql.Connection.TRANSACTION_READ_COMMITTED;
+
+	
+	int ISOLATION_REPEATABLE_READ = 4;  // same as java.sql.Connection.TRANSACTION_REPEATABLE_READ;
+
+	
+	int ISOLATION_SERIALIZABLE = 8;  // same as java.sql.Connection.TRANSACTION_SERIALIZABLE;
+
+
+	
+	int TIMEOUT_DEFAULT = -1;
+
+
+	
+	default int getPropagationBehavior() {
+		return PROPAGATION_REQUIRED;
+	}
+
+
+	default int getIsolationLevel() {
+		return ISOLATION_DEFAULT;
+	}
+
+
+	default int getTimeout() {
+		return TIMEOUT_DEFAULT;
+	}
+
+
+	default boolean isReadOnly() {
+		return false;
+	}
+
+	@Nullable
+	default String getName() {
+		return null;
+	}
+
+	static TransactionDefinition withDefaults() {
+		return StaticTransactionDefinition.INSTANCE;
+	}
+
+}
+```
+
+
+
+### 编程式事务(熟悉)
+
+接下来，我们需要再开发过程中，需要合适的平台事务管理器实现类对象以及事务定义实现类对象。
+
+如果需要保障事务，则需要再Spring配置类中额外再添加如下两个配置
+
+```java
+  //======================上述的设置是没办法保障事务的=============================
+    
+    //需要向容器中再额外注册两个组件：平台事务管理器对象、事务定义对象
+    @Bean
+    public PlatformTransactionManager transactionManager(DataSource dataSource){
+        return new DataSourceTransactionManager(dataSource);
+    }
+    
+    //注册一个事务定义对象
+    @Bean
+    public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager){
+        return new TransactionTemplate(transactionManager);
+    }
+```
+
+
+
+后续，在我们使用过程中，只需要用transactionTemplate将需要保障事务的代码包裹起来即可。
+
+```java
+@Service
+public class TransferServiceImpl implements TransferService{
+
+    //因为之前已经做了配置，已经将创建好的mapper实例放入到spring容器中了，所以此处可以直接从容器中取出
+    @Autowired
+    AccountMapper accountMapper;
+
+    @Autowired
+    TransactionTemplate transactionTemplate;
+
+    @Override
+    public void transfer(String from, String to, Double money) {
+        //execute需要传递一个参数，TransactionCallback，传递进来的是一个匿名内部类对象
+        //将保障事务的代码用doInTransaction包裹起来即可
+        transactionTemplate.execute(new TransactionCallback<Object>() {
+
+            @Override
+            public Object doInTransaction(TransactionStatus status) {
+                accountMapper.updateMoneyByName(from, money);
+
+                //如果转账过程出现异常
+                int i = 1 / 0;
+
+                accountMapper.updateMoneyByName(to, -money);
+
+                return null;
+            }
+        });
+    }
+}
+```
+
+
+
+上述service业务类中的代码虽然写起来不是特别复杂，但是理解起来比较难以理解，可以稍微看一下源码。
+
+![](assets/Spring事务原理.png)
+
+总结：
+
+我们编写的业务代码，最终会嵌套在一个try catch代码块中，如果出现了异常，则进入到回滚过程；如果没有出现异常，则最终进行了提交事务。
+
+
+
+### 声明式事务(掌握)
+
+1.向容器中去注册平台事务管理器实现类对象DataSourceTransactionManager
+
+2.在需要保障事务的代码上面，添加一个注解@Transactional
+
+3.在配置类的头上标注@EnableTransactionManagement
 
 
 
 
 
+问题：编程式事务和声明式事务之间存在着什么联系？？？？
+
+使用编程式事务可以实现声明式事务。（编程式事务  + AOP = 声明式事务）
 
