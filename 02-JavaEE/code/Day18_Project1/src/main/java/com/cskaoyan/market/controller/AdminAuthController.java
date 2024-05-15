@@ -28,7 +28,7 @@ import java.util.Map;
 @WebServlet("/admin/auth/*")
 public class AdminAuthController extends HttpServlet {
 
-    //@Autowired
+//    @Autowired
     private MarketAdminService adminService;
 
 
