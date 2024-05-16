@@ -411,7 +411,304 @@ public class SpringMVCConfig implements WebMvcConfigurer {
 
 
 
+## @RequestMapping
+
+该注解的功能和@WebServlet的注解的功能非常类似，但是要比后者强大的多。
+
+### 窄化路径(掌握)
+
+```java
+@Target({ElementType.TYPE, ElementType.METHOD})
+```
+
+当前注解可以写在类的头上，也可以写在方法的头上。
+
+如果写在方法的头上，那么用法和昨天介绍的用法是完全一致的。
+
+如果写在类的头上，那么需要同时再类的头上和方法的头上都标注（不可以只标注在类的头上）
+
+此时可以起到窄化路径的效果。
+
+比如项目一，管理员登录的请求资源路径为/admin/auth/login，管理员注销为/admin/auth/logout,项目一我们是如何进行处理的呢？
+
+1.@WebServlet("/admin/auth/*")
+
+2.获取请求资源路径，然后将前面的部分替换为空，保留最后一部分路径，进行匹配判断
+
+使用@RequestMapping注解，那么可以按照如下的方式来进行编写
+
+```java
+//声明其是一个controller组件
+@Controller
+@RequestMapping("/admin/auth")
+public class AdminAuthController {
+
+	//类上面的和方法上面的拼接在一起
+    @RequestMapping("/login")
+        @ResponseBody
+    public Object login(){
+        System.out.println("auth login");
+        return null;
+    }
+
+    @RequestMapping("/logout")
+        @ResponseBody
+    public Object logout(){
+        System.out.println("auth logout");
+        return null;
+    }
+}
+
+```
 
 
 
+补充：
+
+> 在@RequestMapping注解中，url-pattern写法相对来说比较灵活，不需要一定要以/开头等。
+>
+> 比如@RequestMapping("logout")这个是完全合法的。
+>
+> 在    @RequestMapping注解中，基本没有任何理由再去写/*了。
+
+
+
+### method属性(掌握)
+
+可以限定发往当前controller的handle方法的请求方法类型，比如限定必须是post请求；之前项目一是如何做的呢？
+
+把对应的代码逻辑写在doPost或者doGet方法中，如果发送的不是对应的请求，则不会有任何的响应。
+
+```java
+@Controller
+@RequestMapping("admin/user")
+public class AdminUserController {
+    
+    //去处理/admin/user/login的请求，但是请求方法必须时post请求方法
+    @RequestMapping(value = "login",method = RequestMethod.POST)
+    public Object login(){
+        return null;
+    }
+}
+```
+
+此时想发送一个post请求，应该怎么操作呢？可以使用一些接口调试工具，比如postman、apifox
+
+
+
+其中，针对method=get或者post，有一个额外的补充说明，
+
+引申出额外的两个注解
+
+```
+@GetMapping= @RequestMapping(method=get)
+@PostMapping= @RequestMapping(method=post)
+```
+
+
+
+### param属性(了解)
+
+param属性表示的是发往当前handle方法的请求，必须要携带特定的请求参数key=
+
+```java
+@Controller
+public class ParamController {
+
+    // /param1?username=admin&password=admin123要求必须要携带username、password请求参数
+    @RequestMapping(value = "/param1",params = {"username", "password"})
+    @ResponseBody
+    public Object param1(){
+        return null;
+    }
+}
+```
+
+
+
+### header属性(了解)
+
+表示的是发往当前handle方法的请求必须要携带特定的请求头，否则请求发送失败。比如在一个电商购物平台，去统计主播带来的流量，那么必须要携带一个referer请求头。可以限定某个请求必须要求具备当前请求头。
+
+```java
+@Controller
+public class HeaderController {
+
+    //必须要携带一个叫做username的请求头，否则请求发送失败
+    @GetMapping(value = "/header1",headers = "username")
+    @ResponseBody
+    public Object header1(){
+
+        return null;
+    }
+}
+```
+
+
+
+
+
+### consumes和produces(了解)
+
+produces指的是是当前handle方法产生的数据类型，会和请求中Accept请求头接受的类型进行比对，如果二者不一致，则请求发送失败；
+
+consumes指的是可以消费的资源类型，会和请求头中content-type类型进行比对，如果二者不一致，也会导致请求发送失败
+
+
+
+## handle方法的返回结果类型
+
+### JSON类型(掌握)
+
+对于前后端分离的项目而言，我们后端主要做的事情便是返回json数据。
+
+如果我们希望Handler方法的返回值是JSON类型，那么需要满足如下三个条件：
+
+1.需要引入jackson-databind依赖
+
+2.需要设置@EnableWebMvc
+
+3.在Handler方法上面添加注解@ResponseBody(原理：AOP 切面 + 自定义注解的方式)
+
+满足上述三点之后，Handler方法的返回值对象会转换成json字符串。
+
+如果当前Controller里面的所有的handle方法的返回值都是json类型，那么意味着每个handle方法的上面都需要添加@ResponseBody注解，着实有一些繁琐。此时可以使用另外一个注解来代替：
+
+**@RestController注解 (标注在类的头上),表示的是当前类是一个Controller，并且当前类的所有的handle方法返回值均是json字符串类型**。
+
+```java
+@RestController
+public class JsonResponseController {
+
+    @GetMapping("resp1")
+    //此时就不需要再方法的上面添加@ResponseBody注解了
+    public Object resp1(){
+       return new Result(200, "OK", null);
+    }
+
+    @GetMapping("resp2")
+    public Object resp2(){
+        return new Result(404, "Error", null);
+    }
+}
+```
+
+### 返回视图(了解)
+
+```java
+@Controller
+public class ModelAndViewController {
+
+    @GetMapping("mav")
+    public ModelAndView hello(){
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("/1.jsp");
+        //本质便是往request域里面填充数据-----本质便是转发
+        modelAndView.addObject("username", "admin123");
+        return modelAndView;
+    }
+}
+```
+
+
+
+## 接收请求参数
+
+### 常规key=value类型(掌握)
+
+原则：直接在handle方法的形参中使用同名的参数来接收即可
+
+```java
+@RestController
+public class KeyValueController {
+
+    // /param1?username=admin&password=admin123&gender=male&age=25&course=java&course=python
+    //如果发送的是上述的这样的请求，那么在java ee阶段，需要使用request.getParameter/getParameterValues来获取接收
+    //无关是get还是post请求，只要满足key=value&key=value数据类型，那么均可以使用上述的方法
+    //在springmvc中，无需使用上述的方式来操作；只需要在handle方法中编写对应的名称的形参来接收即可；形参的类型不要求一定是String类型，使用可以接受的类型来接收即可
+    @GetMapping("/param1")
+    public Object param1(String username, String password, String gender, Integer age, String[] course){
+        System.out.println(username + " " + password + " " + gender + " " + age + " " + Arrays.toString(course));
+        return null;
+    }
+    // /param2?birthday=1999/10/01
+    //如果时间格式不是上述的时间格式，而是yyyy-MM-dd格式，那么应该怎么办？？？？
+    @GetMapping("/param2")
+    public Object param2(Date birthday){
+        System.out.println(birthday);
+        return null;
+    }
+
+    // /param3?birthday=1999-10-01
+    @GetMapping("/param3")
+    public Object param3(@DateTimeFormat(pattern = "yyyy-MM-dd") Date birthday){
+        System.out.println(birthday);
+        return null;
+    }
+}
+```
+
+除了使用上述的方式之外，还可以使用一种方式，直接使用一个引用类型的对象来接收：要求对象里面的属性要求和请求参数的name属性保持一致，并且提供get和set方法即可。
+
+```java
+  // /param4?username=admin&password=admin123&gender=male&age=25&course=java&course=python&birthday=1999-10-01
+    @GetMapping("/param4")
+    public Object param4(User user){
+        System.out.println(user);
+        return null;
+    }
+```
+
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+
+    private String username;
+
+    private String password;
+
+    private String gender;
+
+    private Integer age;
+
+    private String[] course;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private Date birthday;
+}
+```
+
+
+
+### 文件上传(掌握)
+
+1.导包，导入commons-fileuplaod 
+
+```xml
+<dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.4</version>
+        </dependency>
+```
+
+2.向springmvc配置类中去注册一个文件上传解析器
+
+```java
+@EnableWebMvc
+@ComponentScan("com.cskaoyan.th58.controller")
+public class WebConfig implements WebMvcConfigurer {
+    
+    //向容器中去注册一个文件上传解析器
+    //这里面需要特别指出的是方法的名称必须叫做multipartResolver
+    @Bean
+    public MultipartResolver multipartResolver(){
+       return new CommonsMultipartResolver();
+    }
+}
+```
+
+3.编写对应的handle方法来接收即可，形参要求是MultipartFile类型，形参的名称要求和上传的文件的name属性一致。
 
