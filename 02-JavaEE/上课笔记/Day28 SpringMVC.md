@@ -712,3 +712,159 @@ public class WebConfig implements WebMvcConfigurer {
 
 3.编写对应的handle方法来接收即可，形参要求是MultipartFile类型，形参的名称要求和上传的文件的name属性一致。
 
+### JSON数据类型
+
+如果用户提交过来的是json字符串，应该如何接收呢？？？？？
+
+> 项目一中如何处理json数据的呢？
+>
+> 1.解析请求体，获取请求体里面的json字符串
+>
+> 2.使用jackson来对json字符串进行解析，解析成为java对象 objectMapper.readValue();
+
+在SpringMVC中如何进行处理呢？有三种方式。
+
+
+
+对于后端工程师来说，应该如何去发送post请求，并且携带json字符串呢？
+
+> 1.请求方法是post
+>
+> 2.请求头里面的content-type:application/json类型
+>
+> ![image-20240516145401493](assets/image-20240516145401493.png)
+>
+> ![image-20240516145420066](assets/image-20240516145420066.png)
+
+#### 方案一(熟悉)
+
+直接使用一个字符串来接收
+
+```java
+@RestController
+public class JsonController {
+
+    //发送json字符串，那么一定要在请求体里面，所以不可以是get请求
+    // {"username":"admin123","password":"admin123"}发送的便是这个json字符串
+    //形参的名称可以随意，但是要求添加一个注解
+    //表示的含义是把请求体里面的数据封装到一个叫做requestBody名称的变量中
+    @PostMapping("json1")
+    public Object json1(@RequestBody String requestBody){
+        System.out.println(requestBody);
+        return null;
+    }
+}
+```
+
+
+
+#### 方案二(掌握)
+
+使用一个引用类型的对象来接收
+
+```java
+ // {"username":"admin123","password":"admin123"}发送的便是这个json字符串
+    //能够进行封装的前提条件是：形参对象里面的属性值要求和json字符串里面的属性保持一致
+    @PostMapping("json2")
+    public Object json2(@RequestBody MarketAdmin admin){
+        System.out.println(admin);
+        return null;
+    }
+```
+
+
+
+#### 方案三(熟悉)
+
+可以使用一个map来接收
+
+```java
+  //发送过来的请求依然下面这个：
+    // {"username":"admin123","password":"admin123"}发送的便是这个json字符串
+    @PostMapping("json3")
+    public Object json3(@RequestBody Map map){
+        String username = (String) map.get("username");
+        String password = (String) map.get("password");
+        System.out.println(username + " " + password);
+        return null;
+    }
+```
+
+
+
+
+
+总结：使用引用类型对象和使用map之间的区别
+
+什么时候使用对象，什么时候使用map？？？
+
+1.如果json字符串里面的属性、数据结构非常复杂时，建议使用对象，不要去使用map
+
+2.如果json字符串里面仅有几个属性，并且不想再额外创建一个类时，可以直接使用一个map来接收{"id":1}
+
+3.如果json字符串里面包含有数字1，但是我们希望接收到的数字类型是double、float等类，可以使用对象来接收，如果使用map，那么会自行封装解析成为整形。
+
+
+
+## 接收EE对象(熟悉)
+
+```java
+@RestController
+public class EEObjectController {
+
+    //接收request response
+    //如果希望在handle方法中去接收request、response，那么依然是使用同类型的形参变量去接收即可
+    @GetMapping("ee1")
+    public Object ee1(HttpServletRequest request, HttpServletResponse response){
+        System.out.println(request + " " + response);
+        return null;
+    }
+
+    //获取ServletContext对象 getServletContext()-----现在还可以调用吗？？？不可以了因为controller没有继承GenericServlet
+    // request.getServletContext---filter中就是这么去获取的
+    @GetMapping("ee2")
+    public Object ee1(HttpServletRequest request){
+        ServletContext servletContext = request.getServletContext();
+        String realPath = servletContext.getRealPath("");
+        System.out.println(realPath);
+        return null;
+    }
+
+    //session对象???怎么办呢？1.方法形参使用HttpServletRequest来接收  2.直接使用HttpSession来接收
+    @GetMapping("ss1")
+    public Object session1(HttpServletRequest request){
+        HttpSession session = request.getSession();
+        session.setAttribute("username","kongling");
+        return null;
+    }
+
+    @GetMapping("ss2")
+    public Object session2(HttpSession session){
+        Object attribute = session.getAttribute("username");
+        System.out.println(attribute);
+        return null;
+    }
+
+
+    //获取Cookie？如何获取位于请求头中的Cookie数据，老老实实地用request来接收
+    @GetMapping("cookie")
+    public Object cookie(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        if(cookies != null){
+            for (Cookie cookie : cookies) {
+                System.out.println(cookie.getName() + "::::" + cookie.getValue());
+            }
+        }
+        return null;
+    }
+}
+```
+
+
+
+
+
+
+
+
+
