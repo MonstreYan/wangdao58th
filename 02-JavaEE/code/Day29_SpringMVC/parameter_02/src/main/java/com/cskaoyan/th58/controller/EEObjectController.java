@@ -1,6 +1,7 @@
 package com.cskaoyan.th58.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.ServletContext;
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpSession;
  * @Version 1.0
  */
 @RestController
+@RequestMapping("ee")
 public class EEObjectController {
 
     //接收request response

@@ -862,9 +862,209 @@ public class EEObjectController {
 
 
 
+## RESTful
+
+其实指的便是符合REST风格的接口，具体便是指的是在设计接口的请求资源时，应当满足  资源  + 操作的形式
 
 
 
+## 使用注解来获取各种属性
+
+
+
+###  @PathVariable(掌握)
+
+获取请求资源
+
+https://blog.csdn.net/csdnnews/article/details/138890455
+
+https://blog.csdn.net/QbitAI/article/details/138637841
+
+满足：
+
+https://blog.csdn.net/{username}/article/details/{articleId}
+
+希望可以获取username以及articleId的值，应该怎么办呢？？？？？？
+
+```java
+@RestController
+public class PathVariableController {
+
+    //设计一个请求的资源路径：
+    // localhost:8080-----> /QbitAI/article/details/138637841
+    //1.在编写url时，需要获取参数的位置的地方使用一个{}来占位
+    //2.在方法的形参中使用变量来接收,表示的含义是获取username和articleId的值，赋值给对应的形参
+    @GetMapping("/{username}/article/details/{articleId}")
+    public Object v1(@PathVariable("username") String param1,@PathVariable("articleId") String param2){
+        System.out.println(param1 + ":" + param2);
+        return null;
+    }
+
+    //比如jd的商品详情页面有这样一个地址;item.jd.com/10067897654.html,希望能够获取.html前面的这部分数字
+    //如果不借助于当前注解，那么我们需要自行去处理请求资源，将.html替换成空字符串
+    @GetMapping("{goodsId}.html")
+    public Object v2(@PathVariable("goodsId") String param){
+        System.out.println(param);
+        return null;
+    }
+    
+}
+```
+
+### @RequestParam注解(熟悉)
+
+```
+?username=xxx&password=xxx
+```
+
+如果携带了上述的请求 参数，那么其实可以不用去写任何注解，也是可以接受上述的请求参数的，只需要保障handle方法的形参变量的名称和请求参数的名称保持一致。
+
+使用了该注解的好处便是handle方法的形参可以写成任意的名称。
+
+```java
+@RestController
+public class RequestParamController {
+
+    //携带了请求参数/p1?username=admin&password=admin123
+    //不使用注解
+    @GetMapping("p1")
+    public Object param1(String username, String password){
+        System.out.println(username + ":" + password);
+        return null;
+    }
+
+    //使用注解
+    @GetMapping("p2")
+    public Object param2(@RequestParam("username") String u,@RequestParam("password") String p){
+        System.out.println(u + ":" + p);
+        return null;
+    }
+
+    //该注解也是有一些功能的，比如设置在没有传递参数的时候，设置一个默认值
+    //比如之前的项目一种/admin/goods/list?page=1&limit=20&sort=add_time&order=desc
+    //其实可以理解这个注解设置上述page limit sort order的默认值，如果没有传递的情况下，设置一个默认值，也不会使得程序出错
+    //可以设置一个默认值，/admin/goods/list没有携带请求参数，但是此时依然可以获取到值，便是设置的默认值
+    @GetMapping("admin/goods/list")
+    public Object param3(@RequestParam(value = "page",defaultValue = "1") Integer page,
+                         @RequestParam(value = "limit",defaultValue = "20") Integer limit,
+                         @RequestParam(value = "sort",defaultValue = "add_time") String sort,
+                         @RequestParam(value = "order", defaultValue = "desc") String order){
+        System.out.println(page + " " + limit + " " + sort + " " + order);
+        return null;
+    }
+
+}
+```
+
+
+
+### @RequestHeader(熟悉)
+
+利用这个注解，可以非常轻松获取位于请求头里面的值；如果没有这个注解，也可以去做这个事情，只是稍微麻烦了一些。
+
+```java
+@RestController
+public class RequestHeaderController {
+
+    //希望可以获取Host请求头；Accept请求头
+    //在接收请求头时，我们直接使用字符串来接收即可，也可以使用一个字符串数组来接收，默认情况下，springmvc会按照,来进行分割，将分割过之后的数据赋值给对应的形参
+    @GetMapping("head")
+    public Object header(@RequestHeader("Host") String host,@RequestHeader("Accept") String[] accept){
+        System.out.println(host + ":::" + Arrays.toString(accept));
+        return null;
+    }
+    
+    //如果没有上述注解，我们可以如何操作？？？？？
+    @GetMapping("head2")
+    public Object header2(HttpServletRequest request){
+        String host = request.getHeader("Host");
+        
+        return null;
+    }
+}
+```
+
+
+
+
+
+### @CookieValue(了解)
+
+利用该注解，可以获取Cookie中指定key对应的value值
+
+```java
+@RestController
+public class CookieValueController {
+
+    //为了防止请求头中没有携带cookie数据，获取不到信息的情况
+    //在访问当前handle方法时，创建、产生cookie信息
+    @GetMapping("cookie1")
+    public Object cookie1(HttpServletResponse response){
+        //如何创建cookie？？？？？？
+        Cookie cookie = new Cookie("username", "kongling");
+        response.addCookie(cookie);
+        return null;
+    }
+
+    //访问下面的代码时，接收客户端传递过来的cookie 先不去使用注解
+    @GetMapping("cookie2")
+    public Object cookie2(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        if(cookies != null){
+            for (Cookie cookie : cookies) {
+                if("username".equals(cookie.getName())){
+                    System.out.println(cookie.getValue());
+                }
+            }
+        }
+        return null;
+    }
+
+
+    //使用注解 获取名称叫做username的cookie的值，把值赋值给形参value
+    @GetMapping("cookie3")
+    public Object cookie3(@CookieValue("username") String value){
+        System.out.println(value);
+        return null;
+    }
+
+}
+```
+
+
+
+### @SessionAttribute
+
+利用该注解，可以非常轻松获取位于session域里面指定key对应的value数据。
+
+```java
+@RestController
+public class SessionAttributeController {
+
+    //往session域里面写入数据 两种方式：1.形参使用HttpServletRequest来接收  2.使用HttpSession来接收
+    @GetMapping("ss1")
+    public Object ss1(HttpSession session){
+        session.setAttribute("username", "kongling");
+        return null;
+    }
+
+    //从session域里面获取数据
+    @GetMapping("ss2")
+    public Object ss2(HttpSession session){
+        Object attribute = session.getAttribute("username");
+        System.out.println(attribute);
+        return null;
+    }
+
+    //从session域里面获取数据 注解表示的是从session域里面获取一个key=username的值
+    @GetMapping("ss3")
+    public Object ss3(@SessionAttribute("username") String value){
+        System.out.println(value);
+        return null;
+    }
+    
+}
+```
 
 
 
